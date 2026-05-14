@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>Go ToDo</title>
+</head>
+<body>
+  <h1>Go ToDo App</h1>
+
+  <input id="task" placeholder="タスク">
+  <button onclick="addTodo()">追加</button>
+
+  <ul id="list"></ul>
+
+  <script>
+    async function loadTodos() {
+      const res = await fetch("/api/todoList");
+      const todos = await res.json();
+
+      const list = document.getElementById("list");
+      list.innerHTML = "";
+
+      todos.forEach(t => {
+        const li = document.createElement("li");
+
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.checked = t.isDone;
+        checkbox.onchange = () => toggleTodo(t.id);
+
+        const span = document.createElement("span");
+        span.textContent = t.task;
+        if (t.isDone) {
+          span.style.textDecoration = "line-through";
+        }
+
+        const btn = document.createElement("button");
+        btn.textContent = "削除";
+        btn.onclick = () => deleteTodo(t.id);
+
+        li.appendChild(checkbox);
+        li.appendChild(span);
+        li.appendChild(btn);
+        list.appendChild(li);
+      });
+    }
+
+    async function addTodo() {
+      const task = document.getElementById("task").value;
+
+      await fetch("/api/todoList", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ task })
+      });
+
+      document.getElementById("task").value = "";
+      loadTodos();
+    }
+
+    async function deleteTodo(id) {
+      await fetch(`/api/todoList/${id}`, {
+        method: "DELETE"
+      });
+      loadTodos();
+    }
+
+    async function toggleTodo(id) {
+      await fetch(`/api/todoList/${id}`, {
+        method: "PUT"
+      });
+  loadTodos();
+}
+
+    loadTodos();
+  </script>
+</body>
+</html>
+
+<link rel="stylesheet" href="/style.css">
