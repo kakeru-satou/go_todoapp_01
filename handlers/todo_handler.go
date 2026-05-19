@@ -6,8 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	"go-learning/todoApp/db"
-	"go-learning/todoApp/models"
+	"go-learning/todoApp/services"
 )
 
 func getIDFromPath(path string) string {
@@ -20,8 +19,12 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetTodos(w http.ResponseWriter, _ *http.Request) {
-	var todos []models.Todo
-	db.DB.Find(&todos)
+	todos, err := services.GetTodos()
+
+	if err != nil {
+		http.Error(w, "failed to get todos", http.StatusInternalServerError)
+		return
+	}
 
 	json.NewEncoder(w).Encode(todos)
 }
@@ -41,12 +44,13 @@ func CreateTodo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	todo := models.Todo{
-		Task:   req.Task,
-		IsDone: false,
+	todo, err := services.CreateTodo(req.Task)
+
+	if err != nil {
+		http.Error(w, "failed to create todo", http.StatusInternalServerError)
+		return
 	}
 
-	db.DB.Create(&todo)
 	json.NewEncoder(w).Encode(todo)
 }
 
@@ -54,16 +58,12 @@ func ToggleTodo(w http.ResponseWriter, r *http.Request) {
 
 	id := getIDFromPath(r.URL.Path)
 
-	var todo models.Todo
+	todo, err := services.ToggleTodo(id)
 
-	if err := db.DB.First(&todo, id).Error; err != nil {
+	if err != nil {
 		http.Error(w, "todo not found", http.StatusNotFound)
 		return
 	}
-
-	todo.IsDone = !todo.IsDone
-
-	db.DB.Save(&todo)
 
 	json.NewEncoder(w).Encode(todo)
 }
@@ -72,7 +72,7 @@ func DeleteTodo(w http.ResponseWriter, r *http.Request) {
 
 	id := getIDFromPath(r.URL.Path)
 
-	if err := db.DB.Delete(&models.Todo{}, id).Error; err != nil {
+	if err := services.DeleteTodo(id); err != nil {
 		http.Error(w, "delete failed", http.StatusInternalServerError)
 		return
 	}
