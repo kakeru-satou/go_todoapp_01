@@ -1,0 +1,16 @@
+# executable
+*.exe
+
+# database
+*.db
+*.db-shm
+*.db-wal
+
+# vscode
+.vscode/
+
+# idea
+.idea/
+
+# env
+.env
