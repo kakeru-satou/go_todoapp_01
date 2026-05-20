@@ -3,15 +3,14 @@ package services
 import (
 	"go-learning/todoApp/db"
 	"go-learning/todoApp/models"
+	"go-learning/todoApp/repositories"
 )
 
 func GetTodos() ([]models.Todo, error) {
 
 	var todos []models.Todo
 
-	result := db.DB.Find(&todos)
-
-	return todos, result.Error
+	return repositories.FindAllTodos(todos)
 }
 
 func CreateTodo(task string) (models.Todo, error) {
@@ -21,16 +20,16 @@ func CreateTodo(task string) (models.Todo, error) {
 		IsDone: false,
 	}
 
-	result := db.DB.Create(&todo)
-
-	return todo, result.Error
+	return repositories.Create(todo)
 }
 
 func ToggleTodo(id string) (models.Todo, error) {
 
 	var todo models.Todo
 
-	if err := db.DB.First(&todo, id).Error; err != nil {
+	todo, err := repositories.FindByID(todo, id)
+
+	if err != nil {
 		return todo, err
 	}
 
@@ -43,5 +42,9 @@ func ToggleTodo(id string) (models.Todo, error) {
 
 func DeleteTodo(id string) error {
 
-	return db.DB.Delete(&models.Todo{}, id).Error
+	var todo models.Todo
+
+	todo, _ = repositories.FindByID(todo, id)
+
+	return repositories.Delete(todo)
 }
