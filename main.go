@@ -8,6 +8,7 @@ import (
 )
 
 func main() {
+
 	db.Init()
 	router.SetupRoutes()
 

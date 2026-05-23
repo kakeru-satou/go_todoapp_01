@@ -5,3 +5,7 @@ type Todo struct {
 	Task   string `json:"task"`
 	IsDone bool   `json:"isDone"`
 }
+
+type CreateTodoRequest struct {
+	Task string `json:"task"`
+}
