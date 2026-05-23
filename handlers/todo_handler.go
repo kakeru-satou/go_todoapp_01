@@ -6,19 +6,23 @@ import (
 	"net/http"
 	"strings"
 
+	"go-learning/todoApp/models"
 	"go-learning/todoApp/services"
 )
 
 func getIDFromPath(path string) string {
+
 	return strings.TrimPrefix(path, "/api/todoList/")
 }
 
 func IndexHandler(w http.ResponseWriter, r *http.Request) {
+
 	tmpl := template.Must(template.ParseFiles("static/index.html"))
 	tmpl.Execute(w, nil)
 }
 
 func GetTodos(w http.ResponseWriter, _ *http.Request) {
+
 	todos, err := services.GetTodos()
 
 	if err != nil {
@@ -30,24 +34,18 @@ func GetTodos(w http.ResponseWriter, _ *http.Request) {
 }
 
 func CreateTodo(w http.ResponseWriter, r *http.Request) {
-	var req struct {
-		Task string `json:"task"`
-	}
+
+	var req models.CreateTodoRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "invalid request", http.StatusBadRequest)
 		return
 	}
 
-	if req.Task == "" {
-		http.Error(w, "task is empty", http.StatusBadRequest)
-		return
-	}
-
 	todo, err := services.CreateTodo(req.Task)
 
 	if err != nil {
-		http.Error(w, "failed to create todo", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 

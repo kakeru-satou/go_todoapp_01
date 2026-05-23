@@ -1,7 +1,7 @@
 package services
 
 import (
-	"go-learning/todoApp/db"
+	"errors"
 	"go-learning/todoApp/models"
 	"go-learning/todoApp/repositories"
 )
@@ -14,6 +14,10 @@ func GetTodos() ([]models.Todo, error) {
 }
 
 func CreateTodo(task string) (models.Todo, error) {
+
+	if task == "" {
+		return models.Todo{}, errors.New("task is required")
+	}
 
 	todo := models.Todo{
 		Task:   task,
@@ -35,16 +39,18 @@ func ToggleTodo(id string) (models.Todo, error) {
 
 	todo.IsDone = !todo.IsDone
 
-	result := db.DB.Save(&todo)
-
-	return todo, result.Error
+	return repositories.Save(todo)
 }
 
 func DeleteTodo(id string) error {
 
 	var todo models.Todo
 
-	todo, _ = repositories.FindByID(todo, id)
+	todo, err := repositories.FindByID(todo, id)
+
+	if err != nil {
+		return err
+	}
 
 	return repositories.Delete(todo)
 }
