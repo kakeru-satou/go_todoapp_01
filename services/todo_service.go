@@ -31,7 +31,7 @@ func ToggleTodo(id string) (models.Todo, error) {
 
 	var todo models.Todo
 
-	todo, err := repositories.FindByID(todo, id)
+	todo, err := repositories.FindByID(id)
 
 	if err != nil {
 		return todo, err
@@ -46,7 +46,7 @@ func DeleteTodo(id string) error {
 
 	var todo models.Todo
 
-	todo, err := repositories.FindByID(todo, id)
+	todo, err := repositories.FindByID(id)
 
 	if err != nil {
 		return err

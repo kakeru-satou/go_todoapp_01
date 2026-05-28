@@ -19,7 +19,9 @@ func Create(todo models.Todo) (models.Todo, error) {
 	return todo, result.Error
 }
 
-func FindByID(todo models.Todo, id string) (models.Todo, error) {
+func FindByID(id string) (models.Todo, error) {
+
+	var todo models.Todo
 
 	result := db.DB.First(&todo, id)
 
@@ -35,7 +37,7 @@ func Save(todo models.Todo) (models.Todo, error) {
 
 func Delete(todo models.Todo) error {
 
-	result := db.DB.Delete(todo)
+	result := db.DB.Delete(&todo)
 
 	return result.Error
 }
