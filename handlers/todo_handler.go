@@ -21,7 +21,7 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 	tmpl.Execute(w, nil)
 }
 
-func GetTodos(w http.ResponseWriter, _ *http.Request) {
+func GetTodosHandler(w http.ResponseWriter, _ *http.Request) {
 
 	todos, err := services.GetTodos()
 
@@ -33,7 +33,7 @@ func GetTodos(w http.ResponseWriter, _ *http.Request) {
 	json.NewEncoder(w).Encode(todos)
 }
 
-func CreateTodo(w http.ResponseWriter, r *http.Request) {
+func CreateTodoHandler(w http.ResponseWriter, r *http.Request) {
 
 	var req models.CreateTodoRequest
 
@@ -45,14 +45,16 @@ func CreateTodo(w http.ResponseWriter, r *http.Request) {
 	todo, err := services.CreateTodo(req.Task)
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+
+	w.WriteHeader(http.StatusCreated)
 
 	json.NewEncoder(w).Encode(todo)
 }
 
-func ToggleTodo(w http.ResponseWriter, r *http.Request) {
+func ToggleTodoHandler(w http.ResponseWriter, r *http.Request) {
 
 	id := getIDFromPath(r.URL.Path)
 
@@ -66,12 +68,12 @@ func ToggleTodo(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(todo)
 }
 
-func DeleteTodo(w http.ResponseWriter, r *http.Request) {
+func DeleteTodoHandler(w http.ResponseWriter, r *http.Request) {
 
 	id := getIDFromPath(r.URL.Path)
 
 	if err := services.DeleteTodo(id); err != nil {
-		http.Error(w, "delete failed", http.StatusInternalServerError)
+		http.Error(w, "delete failed", http.StatusNotFound)
 		return
 	}
 

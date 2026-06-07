@@ -12,10 +12,10 @@ func SetupRoutes() {
 
 		switch r.Method {
 		case http.MethodGet:
-			handlers.GetTodos(w, r)
+			handlers.GetTodosHandler(w, r)
 
 		case http.MethodPost:
-			handlers.CreateTodo(w, r)
+			handlers.CreateTodoHandler(w, r)
 
 		default:
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
@@ -26,10 +26,10 @@ func SetupRoutes() {
 
 		switch r.Method {
 		case http.MethodPut:
-			handlers.ToggleTodo(w, r)
+			handlers.ToggleTodoHandler(w, r)
 
 		case http.MethodDelete:
-			handlers.DeleteTodo(w, r)
+			handlers.DeleteTodoHandler(w, r)
 
 		default:
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
