@@ -8,9 +8,7 @@ import (
 
 func GetTodos() ([]models.Todo, error) {
 
-	var todos []models.Todo
-
-	return repositories.FindAllTodos(todos)
+	return repositories.FindAllTodos()
 }
 
 func CreateTodo(task string) (models.Todo, error) {

@@ -5,8 +5,9 @@ import (
 	"go-learning/todoApp/models"
 )
 
-func FindAllTodos(todos []models.Todo) ([]models.Todo, error) {
+func FindAllTodos() ([]models.Todo, error) {
 
+	var todos []models.Todo
 	result := db.DB.Find(&todos)
 
 	return todos, result.Error

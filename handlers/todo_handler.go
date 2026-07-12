@@ -15,6 +15,12 @@ func getIDFromPath(path string) string {
 	return strings.TrimPrefix(path, "/api/todoList/")
 }
 
+func writeJSON(w http.ResponseWriter, status int, v any) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	return json.NewEncoder(w).Encode(v)
+}
+
 func IndexHandler(w http.ResponseWriter, r *http.Request) {
 
 	tmpl := template.Must(template.ParseFiles("static/index.html"))
@@ -26,11 +32,15 @@ func GetTodosHandler(w http.ResponseWriter, _ *http.Request) {
 	todos, err := services.GetTodos()
 
 	if err != nil {
-		http.Error(w, "failed to get todos", http.StatusInternalServerError)
+		http.Error(w, "failed to get todos", http.StatusNotFound)
 		return
 	}
 
-	json.NewEncoder(w).Encode(todos)
+	err = writeJSON(w, http.StatusOK, todos)
+
+	if err != nil {
+		http.Error(w, "failed to encode response", http.StatusInternalServerError)
+	}
 }
 
 func CreateTodoHandler(w http.ResponseWriter, r *http.Request) {
@@ -49,9 +59,11 @@ func CreateTodoHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusCreated)
+	err = writeJSON(w, http.StatusCreated, todo)
 
-	json.NewEncoder(w).Encode(todo)
+	if err != nil {
+		http.Error(w, "failed to encode response", http.StatusInternalServerError)
+	}
 }
 
 func ToggleTodoHandler(w http.ResponseWriter, r *http.Request) {
@@ -65,14 +77,20 @@ func ToggleTodoHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	json.NewEncoder(w).Encode(todo)
+	err = writeJSON(w, http.StatusOK, todo)
+
+	if err != nil {
+		http.Error(w, "failed to encode response", http.StatusInternalServerError)
+	}
 }
 
 func DeleteTodoHandler(w http.ResponseWriter, r *http.Request) {
 
 	id := getIDFromPath(r.URL.Path)
 
-	if err := services.DeleteTodo(id); err != nil {
+	err := services.DeleteTodo(id)
+
+	if err != nil {
 		http.Error(w, "delete failed", http.StatusNotFound)
 		return
 	}
