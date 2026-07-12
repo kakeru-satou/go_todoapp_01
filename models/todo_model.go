@@ -1,7 +1,7 @@
 package models
 
 type Todo struct {
-	ID     int    `json:"id"`
+	ID     int    `gorm:"primaryKey" json:"id"`
 	Task   string `json:"task"`
 	IsDone bool   `json:"isDone"`
 }

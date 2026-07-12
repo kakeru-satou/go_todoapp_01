@@ -7,7 +7,6 @@ import (
 	"testing"
 )
 
-// Create成功
 func TestCreate_Success(t *testing.T) {
 
 	db.Init()
@@ -29,7 +28,6 @@ func TestCreate_Success(t *testing.T) {
 	}
 }
 
-// FindByID失敗
 func TestFindByID_UnknownID(t *testing.T) {
 
 	db.Init()
@@ -48,7 +46,6 @@ func TestFindByID_UnknownID(t *testing.T) {
 	}
 }
 
-// FindByID成功
 func TestFindByID_Success(t *testing.T) {
 
 	db.Init()
@@ -70,7 +67,6 @@ func TestFindByID_Success(t *testing.T) {
 	}
 }
 
-// Save成功
 func TestSave_Success(t *testing.T) {
 
 	db.Init()
@@ -102,7 +98,6 @@ func TestSave_Success(t *testing.T) {
 	}
 }
 
-// Delete成功
 func TestDelete_Success(t *testing.T) {
 
 	db.Init()

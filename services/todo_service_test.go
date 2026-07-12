@@ -6,7 +6,6 @@ import (
 	"testing"
 )
 
-// CreateTodo失敗
 func TestCreateTodo_EmptyTask(t *testing.T) {
 
 	db.Init()
@@ -21,7 +20,6 @@ func TestCreateTodo_EmptyTask(t *testing.T) {
 	}
 }
 
-// CreateTodo成功
 func TestCreateTodo_Success(t *testing.T) {
 
 	db.Init()
@@ -38,7 +36,6 @@ func TestCreateTodo_Success(t *testing.T) {
 	}
 }
 
-// ToggleTodo失敗
 func TestToggleTodo_UnknownID(t *testing.T) {
 
 	db.Init()
@@ -58,7 +55,6 @@ func TestToggleTodo_UnknownID(t *testing.T) {
 	}
 }
 
-// ToggleTodo成功
 func TestToggleTodo_Success(t *testing.T) {
 
 	db.Init()
@@ -82,7 +78,6 @@ func TestToggleTodo_Success(t *testing.T) {
 	}
 }
 
-// DeleteTodo失敗
 func TestDeleteTodo_UnknownID(t *testing.T) {
 
 	db.Init()
@@ -98,7 +93,6 @@ func TestDeleteTodo_UnknownID(t *testing.T) {
 	}
 }
 
-// DeleteTodo成功
 func TestDeleteTodo_Success(t *testing.T) {
 
 	db.Init()

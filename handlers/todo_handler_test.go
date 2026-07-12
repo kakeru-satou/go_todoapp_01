@@ -13,7 +13,6 @@ import (
 	"go-learning/todoApp/services"
 )
 
-// CreateTodoHandler成功
 func TestCreateTodoHandler_Success(t *testing.T) {
 
 	db.Init()
@@ -53,7 +52,6 @@ func TestCreateTodoHandler_Success(t *testing.T) {
 	}
 }
 
-// CreateTodoHandler失敗
 func TestCreateTodoHandler_EmptyTask(t *testing.T) {
 
 	db.Init()
@@ -78,7 +76,6 @@ func TestCreateTodoHandler_EmptyTask(t *testing.T) {
 	}
 }
 
-// GetTodosHandler成功
 func TestGetTodosHandler_Success(t *testing.T) {
 
 	db.Init()
@@ -108,7 +105,6 @@ func TestGetTodosHandler_Success(t *testing.T) {
 	}
 }
 
-// ToggleTodoHandler成功
 func TestToggleTodoHandler_Success(t *testing.T) {
 
 	db.Init()
@@ -139,7 +135,6 @@ func TestToggleTodoHandler_Success(t *testing.T) {
 	}
 }
 
-// ToggleTodoHandler失敗
 func TestToggleTodoHandler_NotFound(t *testing.T) {
 
 	db.Init()
@@ -163,7 +158,6 @@ func TestToggleTodoHandler_NotFound(t *testing.T) {
 	}
 }
 
-// DeleteTodoHandler成功
 func TestDeleteTodoHandler_Success(t *testing.T) {
 
 	db.Init()
@@ -194,7 +188,6 @@ func TestDeleteTodoHandler_Success(t *testing.T) {
 	}
 }
 
-// DeleteTodoHandler失敗
 func TestDeleteTodoHandler_NotFound(t *testing.T) {
 
 	db.Init()

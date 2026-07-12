@@ -6,9 +6,11 @@ import (
 	"go-learning/todoApp/handlers"
 )
 
-func SetupRoutes() {
+func SetupRoutes() *http.ServeMux {
 
-	http.HandleFunc("/api/todoList", func(w http.ResponseWriter, r *http.Request) {
+	mux := http.NewServeMux()
+
+	mux.HandleFunc("/api/todoList", func(w http.ResponseWriter, r *http.Request) {
 
 		switch r.Method {
 		case http.MethodGet:
@@ -22,7 +24,7 @@ func SetupRoutes() {
 		}
 	})
 
-	http.HandleFunc("/api/todoList/", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/api/todoList/", func(w http.ResponseWriter, r *http.Request) {
 
 		switch r.Method {
 		case http.MethodPut:
@@ -35,4 +37,6 @@ func SetupRoutes() {
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 		}
 	})
+
+	return mux
 }
