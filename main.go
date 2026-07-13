@@ -10,9 +10,9 @@ import (
 func main() {
 
 	db.Init()
-	router.SetupRoutes()
+	mux := router.SetupRoutes()
 
-	http.Handle("/", http.FileServer(http.Dir("static")))
+	mux.Handle("/", http.FileServer(http.Dir("static")))
 
-	http.ListenAndServe(":8080", nil)
+	http.ListenAndServe(":8080", mux)
 }
