@@ -1,15 +1,16 @@
 package router
 
 import (
-	"bytes"
 	"encoding/json"
 	"go-learning/todoApp/db"
 	"go-learning/todoApp/models"
 	"go-learning/todoApp/repositories"
 	"go-learning/todoApp/services"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
+	"strings"
 	"testing"
 )
 
@@ -17,6 +18,27 @@ func Setup() *http.ServeMux {
 	db.Init()
 
 	return SetupRoutes()
+}
+
+func SendRequest(mux *http.ServeMux, method string, path string, body ...string) *httptest.ResponseRecorder {
+
+	var reader io.Reader
+
+	if len(body) > 0 {
+		reader = strings.NewReader(body[0])
+	}
+
+	req := httptest.NewRequest(
+		method,
+		path,
+		reader,
+	)
+
+	w := httptest.NewRecorder()
+
+	mux.ServeHTTP(w, req)
+
+	return w
 }
 
 func TestRouterGet_Success(t *testing.T) {
@@ -29,15 +51,7 @@ func TestRouterGet_Success(t *testing.T) {
 		t.Fatalf("エラー: %v", err)
 	}
 
-	req := httptest.NewRequest(
-		http.MethodGet,
-		"/api/todoList",
-		nil,
-	)
-
-	w := httptest.NewRecorder()
-
-	mux.ServeHTTP(w, req)
+	w := SendRequest(mux, http.MethodGet, "/api/todoList")
 
 	if w.Code != http.StatusOK {
 		t.Errorf(
@@ -60,7 +74,7 @@ func TestRouterGet_Success(t *testing.T) {
 	}
 
 	if response[0].Task != "test" {
-		t.Fatalf(
+		t.Errorf(
 			"想定タスク: %s, 取得タスク: %s",
 			"test",
 			response[0].Task,
@@ -72,17 +86,7 @@ func TestRouterPost_Success(t *testing.T) {
 
 	mux := Setup()
 
-	jsonStr := `{"task":"test"}`
-
-	req := httptest.NewRequest(
-		http.MethodPost,
-		"/api/todoList",
-		bytes.NewBuffer([]byte(jsonStr)),
-	)
-
-	w := httptest.NewRecorder()
-
-	mux.ServeHTTP(w, req)
+	w := SendRequest(mux, http.MethodPost, "/api/todoList", `{"task":"test"}`)
 
 	if w.Code != http.StatusCreated {
 		t.Errorf(
@@ -121,15 +125,7 @@ func TestRouterPut_Success(t *testing.T) {
 
 	id := strconv.Itoa(todo.ID)
 
-	req := httptest.NewRequest(
-		http.MethodPut,
-		"/api/todoList/"+id,
-		nil,
-	)
-
-	w := httptest.NewRecorder()
-
-	mux.ServeHTTP(w, req)
+	w := SendRequest(mux, http.MethodPut, "/api/todoList/"+id)
 
 	if w.Code != http.StatusOK {
 		t.Errorf(
@@ -176,15 +172,7 @@ func TestRouterDelete_Success(t *testing.T) {
 
 	id := strconv.Itoa(todo.ID)
 
-	req := httptest.NewRequest(
-		http.MethodDelete,
-		"/api/todoList/"+id,
-		nil,
-	)
-
-	w := httptest.NewRecorder()
-
-	mux.ServeHTTP(w, req)
+	w := SendRequest(mux, http.MethodDelete, "/api/todoList/"+id)
 
 	if w.Code != http.StatusNoContent {
 		t.Errorf(
@@ -212,15 +200,17 @@ func TestRouterDelete_Success(t *testing.T) {
 func TestRouterMethodNotAllowed_Success(t *testing.T) {
 	mux := Setup()
 
-	req := httptest.NewRequest(
-		http.MethodPatch,
-		"/api/todoList",
-		nil,
-	)
+	// req := httptest.NewRequest(
+	// 	http.MethodPatch,
+	// 	"/api/todoList",
+	// 	nil,
+	// )
 
-	w := httptest.NewRecorder()
+	// w := httptest.NewRecorder()
 
-	mux.ServeHTTP(w, req)
+	// mux.ServeHTTP(w, req)
+
+	w := SendRequest(mux, http.MethodPatch, "/api/todoList")
 
 	if w.Code != http.StatusMethodNotAllowed {
 		t.Errorf(
@@ -244,15 +234,7 @@ func TestRouterMethodNotAllowed_Success(t *testing.T) {
 func TestRouterGet_NotFound(t *testing.T) {
 	mux := Setup()
 
-	req := httptest.NewRequest(
-		http.MethodGet,
-		"/api/unknown",
-		nil,
-	)
-
-	w := httptest.NewRecorder()
-
-	mux.ServeHTTP(w, req)
+	w := SendRequest(mux, http.MethodGet, "/api/unknown")
 
 	if w.Code != http.StatusNotFound {
 		t.Errorf(
@@ -266,17 +248,7 @@ func TestRouterGet_NotFound(t *testing.T) {
 func TestRouterPost_EmptyTask(t *testing.T) {
 	mux := Setup()
 
-	jsonStr := `{"task":""}`
-
-	req := httptest.NewRequest(
-		http.MethodPost,
-		"/api/todoList",
-		bytes.NewBuffer([]byte(jsonStr)),
-	)
-
-	w := httptest.NewRecorder()
-
-	mux.ServeHTTP(w, req)
+	w := SendRequest(mux, http.MethodPost, "/api/todoList", `{"task":""}`)
 
 	if w.Code != http.StatusBadRequest {
 		t.Errorf(
@@ -300,15 +272,7 @@ func TestRouterPost_EmptyTask(t *testing.T) {
 func TestRouterPut_NotFound(t *testing.T) {
 	mux := Setup()
 
-	req := httptest.NewRequest(
-		http.MethodPut,
-		"/api/todoList/99999",
-		nil,
-	)
-
-	w := httptest.NewRecorder()
-
-	mux.ServeHTTP(w, req)
+	w := SendRequest(mux, http.MethodPut, "/api/todoList/99999")
 
 	if w.Code != http.StatusNotFound {
 		t.Errorf(
@@ -332,15 +296,7 @@ func TestRouterPut_NotFound(t *testing.T) {
 func TestRouterDelete_NotFound(t *testing.T) {
 	mux := Setup()
 
-	req := httptest.NewRequest(
-		http.MethodDelete,
-		"/api/todoList/99999",
-		nil,
-	)
-
-	w := httptest.NewRecorder()
-
-	mux.ServeHTTP(w, req)
+	w := SendRequest(mux, http.MethodDelete, "/api/todoList/99999")
 
 	if w.Code != http.StatusNotFound {
 		t.Errorf(
@@ -358,5 +314,36 @@ func TestRouterDelete_NotFound(t *testing.T) {
 			expected,
 			w.Body.String(),
 		)
+	}
+}
+
+func TestTableRouter(t *testing.T) {
+	tests := []struct {
+		name   string
+		method string
+		path   string
+		status int
+	}{
+		{"RouterGet_NotFound", http.MethodGet, "/api/unknown", http.StatusNotFound},
+		{"RouterPut_NotFound", http.MethodPut, "/api/todoList/9999", http.StatusNotFound},
+		{"RouterDelete_NotFound", http.MethodDelete, "/api/todoList/9999", http.StatusNotFound},
+		{"RouterMethodNotAllowed", http.MethodPatch, "/api/todoList", http.StatusMethodNotAllowed},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mux := Setup()
+
+			w := SendRequest(mux, tt.method, tt.path)
+
+			if w.Code != tt.status {
+				t.Errorf(
+					"%s: 想定=%d, 実際=%d",
+					tt.name,
+					tt.status,
+					w.Code,
+				)
+			}
+		})
 	}
 }
