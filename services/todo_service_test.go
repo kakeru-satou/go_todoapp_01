@@ -36,47 +36,48 @@ func TestCreateTodo_Success(t *testing.T) {
 	}
 }
 
-func TestToggleTodo_UnknownID(t *testing.T) {
-
-	db.Init()
-
-	todo, createdErr := CreateTodo("test")
-	if createdErr != nil {
-		t.Fatalf("エラー: %v", createdErr)
-	}
-
-	if todo.IsDone != false {
-		t.Fatalf("初期完了状態が不正")
-	}
-
-	_, toggleErr := ToggleTodo("hoge")
-	if toggleErr == nil {
-		t.Errorf("存在しないタスクを切り替え")
-	}
-}
-
-func TestToggleTodo_Success(t *testing.T) {
-
-	db.Init()
-
-	todo, createdErr := CreateTodo("test")
-	if createdErr != nil {
-		t.Fatalf("エラー: %v", createdErr)
-	}
-
-	if todo.IsDone != false {
-		t.Errorf("初期完了状態が不正")
-	}
-
-	updatedTodo, toggleErr := ToggleTodo(strconv.Itoa(todo.ID))
-	if toggleErr != nil {
-		t.Fatalf("エラー: %v", toggleErr)
-	}
-
-	if updatedTodo.IsDone != true {
-		t.Errorf("完了状態切り替えに失敗")
-	}
-}
+// ToggleTodoはUpdateTodo(PATCH化)に統合したため使用停止。学習履歴として残置。
+// func TestToggleTodo_UnknownID(t *testing.T) {
+//
+// 	db.Init()
+//
+// 	todo, createdErr := CreateTodo("test")
+// 	if createdErr != nil {
+// 		t.Fatalf("エラー: %v", createdErr)
+// 	}
+//
+// 	if todo.IsDone != false {
+// 		t.Fatalf("初期完了状態が不正")
+// 	}
+//
+// 	_, toggleErr := ToggleTodo("hoge")
+// 	if toggleErr == nil {
+// 		t.Errorf("存在しないタスクを切り替え")
+// 	}
+// }
+//
+// func TestToggleTodo_Success(t *testing.T) {
+//
+// 	db.Init()
+//
+// 	todo, createdErr := CreateTodo("test")
+// 	if createdErr != nil {
+// 		t.Fatalf("エラー: %v", createdErr)
+// 	}
+//
+// 	if todo.IsDone != false {
+// 		t.Errorf("初期完了状態が不正")
+// 	}
+//
+// 	updatedTodo, toggleErr := ToggleTodo(strconv.Itoa(todo.ID))
+// 	if toggleErr != nil {
+// 		t.Fatalf("エラー: %v", toggleErr)
+// 	}
+//
+// 	if updatedTodo.IsDone != true {
+// 		t.Errorf("完了状態切り替えに失敗")
+// 	}
+// }
 
 func TestDeleteTodo_UnknownID(t *testing.T) {
 

@@ -9,3 +9,8 @@ type Todo struct {
 type CreateTodoRequest struct {
 	Task string `json:"task"`
 }
+
+type PatchTodoRequest struct {
+	Task   *string `json:"task"`
+	IsDone *bool   `json:"isDone"`
+}

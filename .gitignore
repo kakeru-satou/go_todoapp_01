@@ -17,3 +17,6 @@
 
 # Debug binaries
 __debug_bin*
+
+# markdown
+*.md

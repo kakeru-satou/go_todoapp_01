@@ -105,58 +105,59 @@ func TestGetTodosHandler_Success(t *testing.T) {
 	}
 }
 
-func TestToggleTodoHandler_Success(t *testing.T) {
-
-	db.Init()
-
-	todo, err := services.CreateTodo("test")
-	if err != nil {
-		t.Fatalf("todo作成に失敗")
-	}
-
-	id := strconv.Itoa(todo.ID)
-
-	req := httptest.NewRequest(
-		http.MethodPut,
-		"/api/todoList/"+id,
-		nil,
-	)
-
-	w := httptest.NewRecorder()
-
-	ToggleTodoHandler(w, req)
-
-	if w.Code != http.StatusOK {
-		t.Errorf(
-			"想定ステータス: %d , 取得したステータス %d",
-			http.StatusOK,
-			w.Code,
-		)
-	}
-}
-
-func TestToggleTodoHandler_NotFound(t *testing.T) {
-
-	db.Init()
-
-	req := httptest.NewRequest(
-		http.MethodPut,
-		"/api/todoList/99999",
-		nil,
-	)
-
-	w := httptest.NewRecorder()
-
-	ToggleTodoHandler(w, req)
-
-	if w.Code != http.StatusNotFound {
-		t.Errorf(
-			"想定ステータス: %d , 取得したステータス %d",
-			http.StatusNotFound,
-			w.Code,
-		)
-	}
-}
+// ToggleTodoHandlerはPatchTodoHandlerに統合したため使用停止。学習履歴として残置。
+// func TestToggleTodoHandler_Success(t *testing.T) {
+//
+// 	db.Init()
+//
+// 	todo, err := services.CreateTodo("test")
+// 	if err != nil {
+// 		t.Fatalf("todo作成に失敗")
+// 	}
+//
+// 	id := strconv.Itoa(todo.ID)
+//
+// 	req := httptest.NewRequest(
+// 		http.MethodPut,
+// 		"/api/todoList/"+id,
+// 		nil,
+// 	)
+//
+// 	w := httptest.NewRecorder()
+//
+// 	ToggleTodoHandler(w, req)
+//
+// 	if w.Code != http.StatusOK {
+// 		t.Errorf(
+// 			"想定ステータス: %d , 取得したステータス %d",
+// 			http.StatusOK,
+// 			w.Code,
+// 		)
+// 	}
+// }
+//
+// func TestToggleTodoHandler_NotFound(t *testing.T) {
+//
+// 	db.Init()
+//
+// 	req := httptest.NewRequest(
+// 		http.MethodPut,
+// 		"/api/todoList/99999",
+// 		nil,
+// 	)
+//
+// 	w := httptest.NewRecorder()
+//
+// 	ToggleTodoHandler(w, req)
+//
+// 	if w.Code != http.StatusNotFound {
+// 		t.Errorf(
+// 			"想定ステータス: %d , 取得したステータス %d",
+// 			http.StatusNotFound,
+// 			w.Code,
+// 		)
+// 	}
+// }
 
 func TestDeleteTodoHandler_Success(t *testing.T) {
 
