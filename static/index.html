@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <title>Go ToDo</title>
+
+  <link rel="stylesheet" href="/style.css">
 </head>
 <body>
   <h1>Go ToDo App</h1>
@@ -26,7 +28,7 @@
         const checkbox = document.createElement("input");
         checkbox.type = "checkbox";
         checkbox.checked = t.isDone;
-        checkbox.onchange = () => toggleTodo(t.id);
+        checkbox.onchange = () => toggleTodo(t.id, checkbox.checked);
 
         const span = document.createElement("span");
         span.textContent = t.task;
@@ -38,8 +40,13 @@
         btn.textContent = "削除";
         btn.onclick = () => deleteTodo(t.id);
 
+        const editBtn = document.createElement("button");
+        editBtn.textContent = "編集"
+        editBtn.onclick = () => editTodo(t.id, t.task)
+
         li.appendChild(checkbox);
         li.appendChild(span);
+        li.appendChild(editBtn);
         li.appendChild(btn);
         list.appendChild(li);
       });
@@ -65,16 +72,31 @@
       loadTodos();
     }
 
-    async function toggleTodo(id) {
+    async function toggleTodo(id, isDone) {
       await fetch(`/api/todoList/${id}`, {
-        method: "PUT"
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isDone })
       });
-  loadTodos();
-}
+      loadTodos();
+    }
+
+    async function editTodo(id, currentTask) {
+      const task = window.prompt("", currentTask)
+
+      if (task == null) {
+        return
+      }
+
+      await fetch(`/api/todoList/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ task })
+      });
+      loadTodos();
+    }
 
     loadTodos();
   </script>
 </body>
 </html>
-
-<link rel="stylesheet" href="/style.css">

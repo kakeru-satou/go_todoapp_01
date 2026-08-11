@@ -27,8 +27,8 @@ func SetupRoutes() *http.ServeMux {
 	mux.HandleFunc("/api/todoList/", func(w http.ResponseWriter, r *http.Request) {
 
 		switch r.Method {
-		case http.MethodPut:
-			handlers.ToggleTodoHandler(w, r)
+		case http.MethodPatch:
+			handlers.PatchTodoHandler(w, r)
 
 		case http.MethodDelete:
 			handlers.DeleteTodoHandler(w, r)

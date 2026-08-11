@@ -113,7 +113,7 @@ func TestRouterPost_Success(t *testing.T) {
 	}
 }
 
-func TestRouterPut_Success(t *testing.T) {
+func TestRouterPatch_IsDoneSuccess(t *testing.T) {
 
 	mux := Setup()
 
@@ -125,7 +125,7 @@ func TestRouterPut_Success(t *testing.T) {
 
 	id := strconv.Itoa(todo.ID)
 
-	w := SendRequest(mux, http.MethodPut, "/api/todoList/"+id)
+	w := SendRequest(mux, http.MethodPatch, "/api/todoList/"+id, `{"isDone":true}`)
 
 	if w.Code != http.StatusOK {
 		t.Errorf(
@@ -155,6 +155,52 @@ func TestRouterPut_Success(t *testing.T) {
 		t.Errorf(
 			"想定状態: %t, 取得状態: %t",
 			true,
+			response.IsDone,
+		)
+	}
+}
+
+func TestRouterPatch_TaskSuccess(t *testing.T) {
+	mux := Setup()
+
+	todo, err := services.CreateTodo("test")
+
+	if err != nil {
+		t.Fatalf("エラー: %v", err)
+	}
+
+	id := strconv.Itoa(todo.ID)
+
+	w := SendRequest(mux, http.MethodPatch, "/api/todoList/"+id, `{"task":"Test"}`)
+
+	if w.Code != http.StatusOK {
+		t.Errorf(
+			"想定ステータス: %d , 取得ステータス: %d",
+			http.StatusOK,
+			w.Code,
+		)
+	}
+
+	var response models.Todo
+
+	err = json.Unmarshal(w.Body.Bytes(), &response)
+
+	if err != nil {
+		t.Fatalf("response body: %v", err)
+	}
+
+	if response.Task != "Test" {
+		t.Errorf(
+			"想定タスク: %s, 取得タスク: %s",
+			"Test",
+			response.Task,
+		)
+	}
+
+	if response.IsDone != false {
+		t.Errorf(
+			"想定状態: %t, 取得状態: %t",
+			false,
 			response.IsDone,
 		)
 	}
@@ -269,10 +315,10 @@ func TestRouterPost_EmptyTask(t *testing.T) {
 	}
 }
 
-func TestRouterPut_NotFound(t *testing.T) {
+func TestRouterPatch_NotFound(t *testing.T) {
 	mux := Setup()
 
-	w := SendRequest(mux, http.MethodPut, "/api/todoList/99999")
+	w := SendRequest(mux, http.MethodPatch, "/api/todoList/99999", `{"task":"Test"}`)
 
 	if w.Code != http.StatusNotFound {
 		t.Errorf(
@@ -283,6 +329,38 @@ func TestRouterPut_NotFound(t *testing.T) {
 	}
 
 	expected := "todo not found\n"
+
+	if w.Body.String() != expected {
+		t.Errorf(
+			"想定ボディ: %s , 取得ボディ: %q",
+			expected,
+			w.Body.String(),
+		)
+	}
+}
+
+func TestRouterPatch_EmptyTask(t *testing.T) {
+	mux := Setup()
+
+	todo, err := services.CreateTodo("test")
+
+	if err != nil {
+		t.Fatalf("エラー: %v", err)
+	}
+
+	id := strconv.Itoa(todo.ID)
+
+	w := SendRequest(mux, http.MethodPatch, "/api/todoList/"+id, `{"task":""}`)
+
+	if w.Code != http.StatusBadRequest {
+		t.Errorf(
+			"想定ステータス: %d , 取得ステータス: %d",
+			http.StatusBadRequest,
+			w.Code,
+		)
+	}
+
+	expected := "task is required\n"
 
 	if w.Body.String() != expected {
 		t.Errorf(
@@ -325,7 +403,6 @@ func TestTableRouter(t *testing.T) {
 		status int
 	}{
 		{"RouterGet_NotFound", http.MethodGet, "/api/unknown", http.StatusNotFound},
-		{"RouterPut_NotFound", http.MethodPut, "/api/todoList/9999", http.StatusNotFound},
 		{"RouterDelete_NotFound", http.MethodDelete, "/api/todoList/9999", http.StatusNotFound},
 		{"RouterMethodNotAllowed", http.MethodPatch, "/api/todoList", http.StatusMethodNotAllowed},
 	}

@@ -6,6 +6,8 @@ import (
 	"go-learning/todoApp/repositories"
 )
 
+var ErrTaskRequired = errors.New("task is required")
+
 func GetTodos() ([]models.Todo, error) {
 
 	return repositories.FindAllTodos()
@@ -14,7 +16,7 @@ func GetTodos() ([]models.Todo, error) {
 func CreateTodo(task string) (models.Todo, error) {
 
 	if task == "" {
-		return models.Todo{}, errors.New("task is required")
+		return models.Todo{}, ErrTaskRequired
 	}
 
 	todo := models.Todo{
@@ -25,17 +27,38 @@ func CreateTodo(task string) (models.Todo, error) {
 	return repositories.Create(todo)
 }
 
-func ToggleTodo(id string) (models.Todo, error) {
+// UpdateTodo(PATCH化)に統合したため使用停止。学習履歴として残置。
+// func ToggleTodo(id string) (models.Todo, error) {
+//
+// 	var todo models.Todo
+//
+// 	todo, err := repositories.FindByID(id)
+//
+// 	if err != nil {
+// 		return todo, err
+// 	}
+//
+// 	todo.IsDone = !todo.IsDone
+//
+// 	return repositories.Save(todo)
+// }
 
-	var todo models.Todo
-
+func UpdateTodo(id string, patch models.PatchTodoRequest) (models.Todo, error) {
 	todo, err := repositories.FindByID(id)
 
 	if err != nil {
 		return todo, err
 	}
 
-	todo.IsDone = !todo.IsDone
+	if patch.IsDone != nil {
+		todo.IsDone = *patch.IsDone
+	}
+	if patch.Task != nil {
+		if *patch.Task == "" {
+			return models.Todo{}, ErrTaskRequired
+		}
+		todo.Task = *patch.Task
+	}
 
 	return repositories.Save(todo)
 }

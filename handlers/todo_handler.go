@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"html/template"
 	"net/http"
 	"strings"
@@ -66,13 +67,42 @@ func CreateTodoHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func ToggleTodoHandler(w http.ResponseWriter, r *http.Request) {
+// PatchTodoHandlerに統合したため使用停止。学習履歴として残置。
+// func ToggleTodoHandler(w http.ResponseWriter, r *http.Request) {
+//
+// 	id := getIDFromPath(r.URL.Path)
+//
+// 	todo, err := services.ToggleTodo(id)
+//
+// 	if err != nil {
+// 		http.Error(w, "todo not found", http.StatusNotFound)
+// 		return
+// 	}
+//
+// 	err = writeJSON(w, http.StatusOK, todo)
+//
+// 	if err != nil {
+// 		http.Error(w, "failed to encode response", http.StatusInternalServerError)
+// 	}
+// }
 
+func PatchTodoHandler(w http.ResponseWriter, r *http.Request) {
 	id := getIDFromPath(r.URL.Path)
 
-	todo, err := services.ToggleTodo(id)
+	var req models.PatchTodoRequest
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "invalid request", http.StatusBadRequest)
+		return
+	}
+
+	todo, err := services.UpdateTodo(id, req)
 
 	if err != nil {
+		if errors.Is(err, services.ErrTaskRequired) {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
 		http.Error(w, "todo not found", http.StatusNotFound)
 		return
 	}
