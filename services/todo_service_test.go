@@ -13,6 +13,14 @@ func Setup() *TodoService {
 	return ser
 }
 
+func SetupMock() (*TodoService, *MockDeleter) {
+	rep := NewFakeRepository()
+	deleter := MockDeleter{}
+	ser := NewTodoService(rep, rep, rep, rep, &deleter)
+
+	return ser, &deleter
+}
+
 func TestCreateTodo_EmptyTask(t *testing.T) {
 
 	ser := Setup()
@@ -211,5 +219,25 @@ func TestDeleteTodo_Success(t *testing.T) {
 		if getTodo.ID == todo.ID {
 			t.Errorf("削除に失敗")
 		}
+	}
+}
+
+func TestDeleteTodo_Mock(t *testing.T) {
+	ser, m := SetupMock()
+
+	todo, createdErr := ser.CreateTodo("test")
+	if createdErr != nil {
+		t.Fatalf("エラー: %v", createdErr)
+	}
+
+	err := ser.DeleteTodo(strconv.Itoa(todo.ID))
+	if err != nil {
+		t.Errorf("エラー: %v", err)
+	}
+	if m.CallCount != 1 {
+		t.Errorf("mockが呼ばれていない")
+	}
+	if m.Todo != todo {
+		t.Errorf("mock内のtodoが不一致")
 	}
 }
