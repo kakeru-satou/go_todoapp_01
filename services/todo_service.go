@@ -1,22 +1,37 @@
 package services
 
 import (
-	"errors"
 	"go-learning/todoApp/models"
 	"go-learning/todoApp/repositories"
 )
 
-var ErrTaskRequired = errors.New("task is required")
-
-func GetTodos() ([]models.Todo, error) {
-
-	return repositories.FindAllTodos()
+type TodoService struct {
+	allFinder repositories.AllFinder
+	creator   repositories.Creator
+	finder    repositories.Finder
+	saver     repositories.Saver
+	deleter   repositories.Deleter
 }
 
-func CreateTodo(task string) (models.Todo, error) {
+func NewTodoService(allFinder repositories.AllFinder, creator repositories.Creator, finder repositories.Finder, saver repositories.Saver, deleter repositories.Deleter) *TodoService {
+	return &TodoService{
+		allFinder: allFinder,
+		creator:   creator,
+		finder:    finder,
+		saver:     saver,
+		deleter:   deleter,
+	}
+}
+
+func (s *TodoService) GetTodos() ([]models.Todo, error) {
+
+	return s.allFinder.FindAllTodos()
+}
+
+func (s *TodoService) CreateTodo(task string) (models.Todo, error) {
 
 	if task == "" {
-		return models.Todo{}, ErrTaskRequired
+		return models.Todo{}, models.ErrTaskRequired
 	}
 
 	todo := models.Todo{
@@ -24,7 +39,7 @@ func CreateTodo(task string) (models.Todo, error) {
 		IsDone: false,
 	}
 
-	return repositories.Create(todo)
+	return s.creator.Create(todo)
 }
 
 // UpdateTodo(PATCH化)に統合したため使用停止。学習履歴として残置。
@@ -43,8 +58,8 @@ func CreateTodo(task string) (models.Todo, error) {
 // 	return repositories.Save(todo)
 // }
 
-func UpdateTodo(id string, patch models.PatchTodoRequest) (models.Todo, error) {
-	todo, err := repositories.FindByID(id)
+func (s *TodoService) UpdateTodo(id string, patch models.PatchTodoRequest) (models.Todo, error) {
+	todo, err := s.finder.FindByID(id)
 
 	if err != nil {
 		return todo, err
@@ -55,23 +70,23 @@ func UpdateTodo(id string, patch models.PatchTodoRequest) (models.Todo, error) {
 	}
 	if patch.Task != nil {
 		if *patch.Task == "" {
-			return models.Todo{}, ErrTaskRequired
+			return models.Todo{}, models.ErrTaskRequired
 		}
 		todo.Task = *patch.Task
 	}
 
-	return repositories.Save(todo)
+	return s.saver.Save(todo)
 }
 
-func DeleteTodo(id string) error {
+func (s *TodoService) DeleteTodo(id string) error {
 
 	var todo models.Todo
 
-	todo, err := repositories.FindByID(id)
+	todo, err := s.finder.FindByID(id)
 
 	if err != nil {
 		return err
 	}
 
-	return repositories.Delete(todo)
+	return s.deleter.Delete(todo)
 }
