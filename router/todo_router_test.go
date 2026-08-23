@@ -3,6 +3,7 @@ package router
 import (
 	"encoding/json"
 	"go-learning/todoApp/db"
+	"go-learning/todoApp/handlers"
 	"go-learning/todoApp/models"
 	"go-learning/todoApp/repositories"
 	"go-learning/todoApp/services"
@@ -14,10 +15,14 @@ import (
 	"testing"
 )
 
-func Setup() *http.ServeMux {
+func Setup() (*http.ServeMux, *services.TodoService) {
 	db.Init()
 
-	return SetupRoutes()
+	rep := repositories.TodoRepository{}
+	ser := services.NewTodoService(rep, rep, rep, rep, rep)
+	han := handlers.NewTodoHandler(ser, ser, ser, ser)
+
+	return SetupRoutes(han), ser
 }
 
 func SendRequest(mux *http.ServeMux, method string, path string, body ...string) *httptest.ResponseRecorder {
@@ -43,9 +48,9 @@ func SendRequest(mux *http.ServeMux, method string, path string, body ...string)
 
 func TestRouterGet_Success(t *testing.T) {
 
-	mux := Setup()
+	mux, ser := Setup()
 
-	_, err := services.CreateTodo("test")
+	_, err := ser.CreateTodo("test")
 
 	if err != nil {
 		t.Fatalf("エラー: %v", err)
@@ -84,7 +89,7 @@ func TestRouterGet_Success(t *testing.T) {
 
 func TestRouterPost_Success(t *testing.T) {
 
-	mux := Setup()
+	mux, _ := Setup()
 
 	w := SendRequest(mux, http.MethodPost, "/api/todoList", `{"task":"test"}`)
 
@@ -115,9 +120,9 @@ func TestRouterPost_Success(t *testing.T) {
 
 func TestRouterPatch_IsDoneSuccess(t *testing.T) {
 
-	mux := Setup()
+	mux, ser := Setup()
 
-	todo, err := services.CreateTodo("test")
+	todo, err := ser.CreateTodo("test")
 
 	if err != nil {
 		t.Fatalf("エラー: %v", err)
@@ -161,9 +166,9 @@ func TestRouterPatch_IsDoneSuccess(t *testing.T) {
 }
 
 func TestRouterPatch_TaskSuccess(t *testing.T) {
-	mux := Setup()
+	mux, ser := Setup()
 
-	todo, err := services.CreateTodo("test")
+	todo, err := ser.CreateTodo("test")
 
 	if err != nil {
 		t.Fatalf("エラー: %v", err)
@@ -208,9 +213,11 @@ func TestRouterPatch_TaskSuccess(t *testing.T) {
 
 func TestRouterDelete_Success(t *testing.T) {
 
-	mux := Setup()
+	mux, ser := Setup()
 
-	todo, err := services.CreateTodo("test")
+	repo := repositories.TodoRepository{}
+
+	todo, err := ser.CreateTodo("test")
 
 	if err != nil {
 		t.Fatalf("エラー: %v", err)
@@ -236,7 +243,7 @@ func TestRouterDelete_Success(t *testing.T) {
 		)
 	}
 
-	_, err = repositories.FindByID(id)
+	_, err = repo.FindByID(id)
 
 	if err == nil {
 		t.Errorf("タスクの削除に失敗")
@@ -244,17 +251,7 @@ func TestRouterDelete_Success(t *testing.T) {
 }
 
 func TestRouterMethodNotAllowed_Success(t *testing.T) {
-	mux := Setup()
-
-	// req := httptest.NewRequest(
-	// 	http.MethodPatch,
-	// 	"/api/todoList",
-	// 	nil,
-	// )
-
-	// w := httptest.NewRecorder()
-
-	// mux.ServeHTTP(w, req)
+	mux, _ := Setup()
 
 	w := SendRequest(mux, http.MethodPatch, "/api/todoList")
 
@@ -278,7 +275,7 @@ func TestRouterMethodNotAllowed_Success(t *testing.T) {
 }
 
 func TestRouterGet_NotFound(t *testing.T) {
-	mux := Setup()
+	mux, _ := Setup()
 
 	w := SendRequest(mux, http.MethodGet, "/api/unknown")
 
@@ -292,7 +289,7 @@ func TestRouterGet_NotFound(t *testing.T) {
 }
 
 func TestRouterPost_EmptyTask(t *testing.T) {
-	mux := Setup()
+	mux, _ := Setup()
 
 	w := SendRequest(mux, http.MethodPost, "/api/todoList", `{"task":""}`)
 
@@ -316,7 +313,7 @@ func TestRouterPost_EmptyTask(t *testing.T) {
 }
 
 func TestRouterPatch_NotFound(t *testing.T) {
-	mux := Setup()
+	mux, _ := Setup()
 
 	w := SendRequest(mux, http.MethodPatch, "/api/todoList/99999", `{"task":"Test"}`)
 
@@ -340,9 +337,9 @@ func TestRouterPatch_NotFound(t *testing.T) {
 }
 
 func TestRouterPatch_EmptyTask(t *testing.T) {
-	mux := Setup()
+	mux, ser := Setup()
 
-	todo, err := services.CreateTodo("test")
+	todo, err := ser.CreateTodo("test")
 
 	if err != nil {
 		t.Fatalf("エラー: %v", err)
@@ -372,7 +369,7 @@ func TestRouterPatch_EmptyTask(t *testing.T) {
 }
 
 func TestRouterDelete_NotFound(t *testing.T) {
-	mux := Setup()
+	mux, _ := Setup()
 
 	w := SendRequest(mux, http.MethodDelete, "/api/todoList/99999")
 
@@ -409,7 +406,7 @@ func TestTableRouter(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mux := Setup()
+			mux, _ := Setup()
 
 			w := SendRequest(mux, tt.method, tt.path)
 

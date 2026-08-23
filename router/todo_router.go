@@ -2,11 +2,16 @@ package router
 
 import (
 	"net/http"
-
-	"go-learning/todoApp/handlers"
 )
 
-func SetupRoutes() *http.ServeMux {
+type Handler interface {
+	GetTodosHandler(w http.ResponseWriter, r *http.Request)
+	CreateTodoHandler(w http.ResponseWriter, r *http.Request)
+	PatchTodoHandler(w http.ResponseWriter, r *http.Request)
+	DeleteTodoHandler(w http.ResponseWriter, r *http.Request)
+}
+
+func SetupRoutes(h Handler) *http.ServeMux {
 
 	mux := http.NewServeMux()
 
@@ -14,10 +19,10 @@ func SetupRoutes() *http.ServeMux {
 
 		switch r.Method {
 		case http.MethodGet:
-			handlers.GetTodosHandler(w, r)
+			h.GetTodosHandler(w, r)
 
 		case http.MethodPost:
-			handlers.CreateTodoHandler(w, r)
+			h.CreateTodoHandler(w, r)
 
 		default:
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
@@ -28,10 +33,10 @@ func SetupRoutes() *http.ServeMux {
 
 		switch r.Method {
 		case http.MethodPatch:
-			handlers.PatchTodoHandler(w, r)
+			h.PatchTodoHandler(w, r)
 
 		case http.MethodDelete:
-			handlers.DeleteTodoHandler(w, r)
+			h.DeleteTodoHandler(w, r)
 
 		default:
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)

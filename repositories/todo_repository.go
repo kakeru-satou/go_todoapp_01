@@ -5,7 +5,21 @@ import (
 	"go-learning/todoApp/models"
 )
 
-func FindAllTodos() ([]models.Todo, error) {
+type AllFinder interface{ FindAllTodos() ([]models.Todo, error) }
+type Creator interface {
+	Create(models.Todo) (models.Todo, error)
+}
+type Finder interface {
+	FindByID(string) (models.Todo, error)
+}
+type Saver interface {
+	Save(models.Todo) (models.Todo, error)
+}
+type Deleter interface{ Delete(models.Todo) error }
+
+type TodoRepository struct{}
+
+func (r TodoRepository) FindAllTodos() ([]models.Todo, error) {
 
 	var todos []models.Todo
 	result := db.DB.Find(&todos)
@@ -13,14 +27,14 @@ func FindAllTodos() ([]models.Todo, error) {
 	return todos, result.Error
 }
 
-func Create(todo models.Todo) (models.Todo, error) {
+func (r TodoRepository) Create(todo models.Todo) (models.Todo, error) {
 
 	result := db.DB.Create(&todo)
 
 	return todo, result.Error
 }
 
-func FindByID(id string) (models.Todo, error) {
+func (r TodoRepository) FindByID(id string) (models.Todo, error) {
 
 	var todo models.Todo
 
@@ -29,14 +43,14 @@ func FindByID(id string) (models.Todo, error) {
 	return todo, result.Error
 }
 
-func Save(todo models.Todo) (models.Todo, error) {
+func (r TodoRepository) Save(todo models.Todo) (models.Todo, error) {
 
 	result := db.DB.Save(&todo)
 
 	return todo, result.Error
 }
 
-func Delete(todo models.Todo) error {
+func (r TodoRepository) Delete(todo models.Todo) error {
 
 	result := db.DB.Delete(&todo)
 

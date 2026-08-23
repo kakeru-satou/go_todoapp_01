@@ -10,16 +10,17 @@ import (
 func TestCreate_Success(t *testing.T) {
 
 	db.Init()
+	repo := TodoRepository{}
 	todo := models.Todo{
 		Task: "test",
 	}
 
-	createdTodo, createdErr := Create(todo)
+	createdTodo, createdErr := repo.Create(todo)
 	if createdErr != nil {
 		t.Errorf("エラー: %v", createdErr)
 	}
 
-	foundTodo, foundErr := FindByID(strconv.Itoa(createdTodo.ID))
+	foundTodo, foundErr := repo.FindByID(strconv.Itoa(createdTodo.ID))
 	if foundErr != nil {
 		t.Errorf("作成失敗")
 	}
@@ -31,16 +32,17 @@ func TestCreate_Success(t *testing.T) {
 func TestFindByID_UnknownID(t *testing.T) {
 
 	db.Init()
+	repo := TodoRepository{}
 	todo := models.Todo{
 		Task: "test",
 	}
 
-	_, createdErr := Create(todo)
+	_, createdErr := repo.Create(todo)
 	if createdErr != nil {
 		t.Fatalf("エラー: %v", createdErr)
 	}
 
-	_, err := FindByID("hoge")
+	_, err := repo.FindByID("hoge")
 	if err == nil {
 		t.Errorf("存在しないタスクの検索")
 	}
@@ -49,16 +51,17 @@ func TestFindByID_UnknownID(t *testing.T) {
 func TestFindByID_Success(t *testing.T) {
 
 	db.Init()
+	repo := TodoRepository{}
 	todo := models.Todo{
 		Task: "test",
 	}
 
-	createdTodo, createdErr := Create(todo)
+	createdTodo, createdErr := repo.Create(todo)
 	if createdErr != nil {
 		t.Fatalf("エラー: %v", createdErr)
 	}
 
-	foundTodo, err := FindByID(strconv.Itoa(createdTodo.ID))
+	foundTodo, err := repo.FindByID(strconv.Itoa(createdTodo.ID))
 	if err != nil {
 		t.Errorf("存在しないタスクの検索")
 	}
@@ -70,11 +73,12 @@ func TestFindByID_Success(t *testing.T) {
 func TestSave_Success(t *testing.T) {
 
 	db.Init()
+	repo := TodoRepository{}
 	todo := models.Todo{
 		Task: "test",
 	}
 
-	createdTodo, createdErr := Create(todo)
+	createdTodo, createdErr := repo.Create(todo)
 	if createdErr != nil {
 		t.Fatalf("エラー: %v", createdErr)
 	}
@@ -84,12 +88,12 @@ func TestSave_Success(t *testing.T) {
 
 	createdTodo.IsDone = true
 
-	_, savedErr := Save(createdTodo)
+	_, savedErr := repo.Save(createdTodo)
 	if savedErr != nil {
 		t.Errorf("エラー: %v", savedErr)
 	}
 
-	foundTodo, foundErr := FindByID(strconv.Itoa(createdTodo.ID))
+	foundTodo, foundErr := repo.FindByID(strconv.Itoa(createdTodo.ID))
 	if foundErr != nil {
 		t.Fatalf("エラー: %v", foundErr)
 	}
@@ -101,21 +105,22 @@ func TestSave_Success(t *testing.T) {
 func TestDelete_Success(t *testing.T) {
 
 	db.Init()
+	repo := TodoRepository{}
 	todo := models.Todo{
 		Task: "test",
 	}
 
-	createdTodo, createdErr := Create(todo)
+	createdTodo, createdErr := repo.Create(todo)
 	if createdErr != nil {
 		t.Fatalf("エラー: %v", createdErr)
 	}
 
-	deletedErr := Delete(createdTodo)
+	deletedErr := repo.Delete(createdTodo)
 	if deletedErr != nil {
 		t.Errorf("エラー: %v", deletedErr)
 	}
 
-	_, foundErr := FindByID(strconv.Itoa(createdTodo.ID))
+	_, foundErr := repo.FindByID(strconv.Itoa(createdTodo.ID))
 	if foundErr == nil {
 		t.Errorf("削除に失敗")
 	}

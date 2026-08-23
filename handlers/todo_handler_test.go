@@ -10,12 +10,23 @@ import (
 
 	"go-learning/todoApp/db"
 	"go-learning/todoApp/models"
+	"go-learning/todoApp/repositories"
 	"go-learning/todoApp/services"
 )
 
-func TestCreateTodoHandler_Success(t *testing.T) {
+func Setup() (*TodoHandler, *services.TodoService) {
 
 	db.Init()
+	rep := repositories.TodoRepository{}
+	ser := services.NewTodoService(rep, rep, rep, rep, rep)
+	han := NewTodoHandler(ser, ser, ser, ser)
+
+	return han, ser
+}
+
+func TestCreateTodoHandler_Success(t *testing.T) {
+
+	han, _ := Setup()
 
 	jsonStr := `{"task":"test"}`
 
@@ -26,7 +37,7 @@ func TestCreateTodoHandler_Success(t *testing.T) {
 	)
 	w := httptest.NewRecorder()
 
-	CreateTodoHandler(w, req)
+	han.CreateTodoHandler(w, req)
 
 	if w.Code != http.StatusCreated {
 		t.Errorf(
@@ -54,7 +65,7 @@ func TestCreateTodoHandler_Success(t *testing.T) {
 
 func TestCreateTodoHandler_EmptyTask(t *testing.T) {
 
-	db.Init()
+	han, _ := Setup()
 
 	jsonStr := `{"task":""}`
 
@@ -65,7 +76,7 @@ func TestCreateTodoHandler_EmptyTask(t *testing.T) {
 	)
 	w := httptest.NewRecorder()
 
-	CreateTodoHandler(w, req)
+	han.CreateTodoHandler(w, req)
 
 	if w.Code != http.StatusBadRequest {
 		t.Errorf(
@@ -78,10 +89,10 @@ func TestCreateTodoHandler_EmptyTask(t *testing.T) {
 
 func TestGetTodosHandler_Success(t *testing.T) {
 
-	db.Init()
+	han, ser := Setup()
 
-	_, err1 := services.CreateTodo("test1")
-	_, err2 := services.CreateTodo("test2")
+	_, err1 := ser.CreateTodo("test1")
+	_, err2 := ser.CreateTodo("test2")
 	if err1 != nil || err2 != nil {
 		t.Fatalf("todo作成に失敗")
 	}
@@ -94,7 +105,7 @@ func TestGetTodosHandler_Success(t *testing.T) {
 
 	w := httptest.NewRecorder()
 
-	GetTodosHandler(w, req)
+	han.GetTodosHandler(w, req)
 
 	if w.Code != http.StatusOK {
 		t.Errorf(
@@ -161,9 +172,9 @@ func TestGetTodosHandler_Success(t *testing.T) {
 
 func TestDeleteTodoHandler_Success(t *testing.T) {
 
-	db.Init()
+	han, ser := Setup()
 
-	todo, err := services.CreateTodo("test")
+	todo, err := ser.CreateTodo("test")
 	if err != nil {
 		t.Fatalf("todo作成に失敗")
 	}
@@ -178,7 +189,7 @@ func TestDeleteTodoHandler_Success(t *testing.T) {
 
 	w := httptest.NewRecorder()
 
-	DeleteTodoHandler(w, req)
+	han.DeleteTodoHandler(w, req)
 
 	if w.Code != http.StatusNoContent {
 		t.Errorf(
@@ -191,7 +202,7 @@ func TestDeleteTodoHandler_Success(t *testing.T) {
 
 func TestDeleteTodoHandler_NotFound(t *testing.T) {
 
-	db.Init()
+	han, _ := Setup()
 
 	req := httptest.NewRequest(
 		http.MethodDelete,
@@ -201,7 +212,7 @@ func TestDeleteTodoHandler_NotFound(t *testing.T) {
 
 	w := httptest.NewRecorder()
 
-	DeleteTodoHandler(w, req)
+	han.DeleteTodoHandler(w, req)
 
 	if w.Code != http.StatusNotFound {
 		t.Errorf(

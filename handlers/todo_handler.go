@@ -8,8 +8,36 @@ import (
 	"strings"
 
 	"go-learning/todoApp/models"
-	"go-learning/todoApp/services"
 )
+
+type Lister interface {
+	GetTodos() ([]models.Todo, error)
+}
+type Creator interface {
+	CreateTodo(task string) (models.Todo, error)
+}
+type Updater interface {
+	UpdateTodo(id string, patch models.PatchTodoRequest) (models.Todo, error)
+}
+type Deleter interface {
+	DeleteTodo(id string) error
+}
+
+type TodoHandler struct {
+	lister  Lister
+	creator Creator
+	updater Updater
+	deleter Deleter
+}
+
+func NewTodoHandler(lister Lister, creator Creator, updater Updater, deleter Deleter) *TodoHandler {
+	return &TodoHandler{
+		lister:  lister,
+		creator: creator,
+		updater: updater,
+		deleter: deleter,
+	}
+}
 
 func getIDFromPath(path string) string {
 
@@ -28,9 +56,9 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 	tmpl.Execute(w, nil)
 }
 
-func GetTodosHandler(w http.ResponseWriter, _ *http.Request) {
+func (h *TodoHandler) GetTodosHandler(w http.ResponseWriter, _ *http.Request) {
 
-	todos, err := services.GetTodos()
+	todos, err := h.lister.GetTodos()
 
 	if err != nil {
 		http.Error(w, "failed to get todos", http.StatusNotFound)
@@ -44,7 +72,7 @@ func GetTodosHandler(w http.ResponseWriter, _ *http.Request) {
 	}
 }
 
-func CreateTodoHandler(w http.ResponseWriter, r *http.Request) {
+func (h *TodoHandler) CreateTodoHandler(w http.ResponseWriter, r *http.Request) {
 
 	var req models.CreateTodoRequest
 
@@ -53,7 +81,7 @@ func CreateTodoHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	todo, err := services.CreateTodo(req.Task)
+	todo, err := h.creator.CreateTodo(req.Task)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -86,7 +114,7 @@ func CreateTodoHandler(w http.ResponseWriter, r *http.Request) {
 // 	}
 // }
 
-func PatchTodoHandler(w http.ResponseWriter, r *http.Request) {
+func (h *TodoHandler) PatchTodoHandler(w http.ResponseWriter, r *http.Request) {
 	id := getIDFromPath(r.URL.Path)
 
 	var req models.PatchTodoRequest
@@ -96,10 +124,10 @@ func PatchTodoHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	todo, err := services.UpdateTodo(id, req)
+	todo, err := h.updater.UpdateTodo(id, req)
 
 	if err != nil {
-		if errors.Is(err, services.ErrTaskRequired) {
+		if errors.Is(err, models.ErrTaskRequired) {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
@@ -114,11 +142,11 @@ func PatchTodoHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func DeleteTodoHandler(w http.ResponseWriter, r *http.Request) {
+func (h *TodoHandler) DeleteTodoHandler(w http.ResponseWriter, r *http.Request) {
 
 	id := getIDFromPath(r.URL.Path)
 
-	err := services.DeleteTodo(id)
+	err := h.deleter.DeleteTodo(id)
 
 	if err != nil {
 		http.Error(w, "delete failed", http.StatusNotFound)
