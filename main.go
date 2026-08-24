@@ -11,14 +11,20 @@ import (
 )
 
 func main() {
-	rep := repositories.TodoRepository{}
-	ser := services.NewTodoService(rep, rep, rep, rep, rep)
-	han := handlers.NewTodoHandler(ser, ser, ser, ser)
+	todoRep := repositories.TodoRepository{}
+	todoSer := services.NewTodoService(todoRep, todoRep, todoRep, todoRep, todoRep)
+	todoHan := handlers.NewTodoHandler(todoSer, todoSer, todoSer, todoSer)
+
+	userRep := repositories.UserRepository{}
+	userSer := services.NewUserService(userRep)
+	userHan := handlers.NewUserHandler(userSer)
 
 	db.Init()
-	mux := router.SetupRoutes(han)
+	todoMux := router.SetupRoutes(todoHan)
+	userMux := router.SetupUserRoutes(userHan)
 
-	mux.Handle("/", http.FileServer(http.Dir("static")))
+	todoMux.Handle("/api/auth/", userMux)
+	todoMux.Handle("/", http.FileServer(http.Dir("static")))
 
-	http.ListenAndServe(":8080", mux)
+	http.ListenAndServe(":8080", todoMux)
 }

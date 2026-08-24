@@ -19,5 +19,5 @@ func Init() {
 		panic(err)
 	}
 
-	DB.AutoMigrate(&models.Todo{})
+	DB.AutoMigrate(&models.Todo{}, &models.User{})
 }
