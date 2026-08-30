@@ -20,11 +20,11 @@ func NewUserService(userCreator repositories.UserCreator, userFinder repositorie
 	}
 }
 
-func (s *UserService) Signup(name, email, password string) (models.User, error) {
+func (s *UserService) Signup(name, email, password string) (models.User, string, error) {
 
 	hashedPass, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		return models.User{}, err
+		return models.User{}, "", err
 	}
 
 	user := models.User{
@@ -33,7 +33,14 @@ func (s *UserService) Signup(name, email, password string) (models.User, error) 
 		Password: string(hashedPass),
 	}
 
-	return s.userCreator.Create(user)
+	user, err = s.userCreator.Create(user)
+	if err != nil {
+		return user, "", err
+	}
+
+	token, err := auth.GenerateAccessToken(user.ID, user.Name, user.Email)
+
+	return user, token, err
 }
 
 func (s *UserService) Signin(email, password string) (string, error) {
