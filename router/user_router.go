@@ -4,6 +4,7 @@ import "net/http"
 
 type UserHandler interface {
 	SignupHandler(w http.ResponseWriter, r *http.Request)
+	SigninHandler(w http.ResponseWriter, r *http.Request)
 }
 
 func SetupUserRoutes(h UserHandler) *http.ServeMux {
@@ -14,6 +15,15 @@ func SetupUserRoutes(h UserHandler) *http.ServeMux {
 		switch r.Method {
 		case http.MethodPost:
 			h.SignupHandler(w, r)
+		default:
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		}
+	})
+
+	mux.HandleFunc("/api/auth/signin", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodPost:
+			h.SigninHandler(w, r)
 		default:
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 		}

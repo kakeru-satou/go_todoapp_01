@@ -10,17 +10,24 @@ type UserCreator interface {
 	Signup(name, email, password string) (models.User, error)
 }
 
-type UserHandler struct {
-	userCreator UserCreator
+type UserFinder interface {
+	Signin(email, password string) (string, error)
 }
 
-func NewUserHandler(userCreator UserCreator) *UserHandler {
+type UserHandler struct {
+	userCreator UserCreator
+	userFinder  UserFinder
+}
+
+func NewUserHandler(userCreator UserCreator, userFinder UserFinder) *UserHandler {
 	return &UserHandler{
 		userCreator: userCreator,
+		userFinder:  userFinder,
 	}
 }
 
 func (h *UserHandler) SignupHandler(w http.ResponseWriter, r *http.Request) {
+
 	var req models.SignupRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -38,6 +45,32 @@ func (h *UserHandler) SignupHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 
 	err = json.NewEncoder(w).Encode(user)
+	if err != nil {
+		http.Error(w, "failed to encode response", http.StatusInternalServerError)
+	}
+}
+
+func (h *UserHandler) SigninHandler(w http.ResponseWriter, r *http.Request) {
+
+	var req models.SigninRequest
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "invalid request", http.StatusBadRequest)
+		return
+	}
+
+	token, err := h.userFinder.Signin(req.Email, req.Password)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+
+	res := models.SigninResponse{
+		Message: "ログインに成功",
+		Token:   token,
+	}
+
+	err = writeJSON(w, http.StatusOK, res)
 	if err != nil {
 		http.Error(w, "failed to encode response", http.StatusInternalServerError)
 	}

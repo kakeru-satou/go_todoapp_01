@@ -16,8 +16,8 @@ func main() {
 	todoHan := handlers.NewTodoHandler(todoSer, todoSer, todoSer, todoSer)
 
 	userRep := repositories.UserRepository{}
-	userSer := services.NewUserService(userRep)
-	userHan := handlers.NewUserHandler(userSer)
+	userSer := services.NewUserService(userRep, userRep)
+	userHan := handlers.NewUserHandler(userSer, userSer)
 
 	db.Init()
 	todoMux := router.SetupRoutes(todoHan)
