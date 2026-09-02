@@ -26,3 +26,14 @@ func GenerateAccessToken(userID int, name string, email string) (string, error) 
 
 	return jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString([]byte(secretKey))
 }
+
+func VerifyAccessToken(token string) (AccessTokenClaims, error) {
+
+	claims := AccessTokenClaims{}
+
+	_, err := jwt.ParseWithClaims(token, &claims, func(*jwt.Token) (any, error) {
+		return []byte(secretKey), nil
+	})
+
+	return claims, err
+}
