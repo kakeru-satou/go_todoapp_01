@@ -6,6 +6,8 @@ import (
 	"testing"
 )
 
+const testUserID = 0
+
 func Setup() *TodoService {
 	rep := NewFakeRepository()
 	ser := NewTodoService(rep, rep, rep, rep, rep)
@@ -24,7 +26,7 @@ func SetupMock() (*TodoService, *MockDeleter) {
 func TestCreateTodo_EmptyTask(t *testing.T) {
 
 	ser := Setup()
-	todo, err := ser.CreateTodo("")
+	todo, err := ser.CreateTodo("", testUserID)
 
 	if err == nil {
 		t.Errorf("エラーが返ってない")
@@ -40,7 +42,7 @@ func TestCreateTodo_Success(t *testing.T) {
 	ser := Setup()
 	task := "test"
 
-	todo, err := ser.CreateTodo(task)
+	todo, err := ser.CreateTodo(task, testUserID)
 
 	if err != nil {
 		t.Errorf("エラー: %v", err)
@@ -98,7 +100,7 @@ func TestUpdateTodoIsDone_Success(t *testing.T) {
 
 	ser := Setup()
 
-	todo, createdErr := ser.CreateTodo("test")
+	todo, createdErr := ser.CreateTodo("test", testUserID)
 	if createdErr != nil {
 		t.Fatalf("エラー: %v", createdErr)
 	}
@@ -108,7 +110,7 @@ func TestUpdateTodoIsDone_Success(t *testing.T) {
 		IsDone: &isDone,
 	}
 
-	updatedTodo, err := ser.UpdateTodo(strconv.Itoa(todo.ID), patchReq)
+	updatedTodo, err := ser.UpdateTodo(strconv.Itoa(todo.TodoID), testUserID, patchReq)
 	if err != nil {
 		t.Errorf("エラー: %v", err)
 	}
@@ -124,7 +126,7 @@ func TestUpdateTodoTask_Success(t *testing.T) {
 
 	ser := Setup()
 
-	todo, createdErr := ser.CreateTodo("test")
+	todo, createdErr := ser.CreateTodo("test", testUserID)
 	if createdErr != nil {
 		t.Fatalf("エラー: %v", createdErr)
 	}
@@ -134,7 +136,7 @@ func TestUpdateTodoTask_Success(t *testing.T) {
 		Task: &task,
 	}
 
-	updatedTodo, err := ser.UpdateTodo(strconv.Itoa(todo.ID), patchReq)
+	updatedTodo, err := ser.UpdateTodo(strconv.Itoa(todo.TodoID), testUserID, patchReq)
 	if err != nil {
 		t.Errorf("エラー: %v", err)
 	}
@@ -155,7 +157,7 @@ func TestUpdateTodoTask_UnknownID(t *testing.T) {
 		Task: &task,
 	}
 
-	_, err := ser.UpdateTodo("99999999", patchReq)
+	_, err := ser.UpdateTodo("99999999", testUserID, patchReq)
 	if err == nil {
 		t.Errorf("エラーが返っていない")
 	}
@@ -165,7 +167,7 @@ func TestUpdateTodoTask_EmptyTask(t *testing.T) {
 
 	ser := Setup()
 
-	todo, createdErr := ser.CreateTodo("test")
+	todo, createdErr := ser.CreateTodo("test", testUserID)
 	if createdErr != nil {
 		t.Fatalf("エラー: %v", createdErr)
 	}
@@ -175,7 +177,7 @@ func TestUpdateTodoTask_EmptyTask(t *testing.T) {
 		Task: &task,
 	}
 
-	_, err := ser.UpdateTodo(strconv.Itoa(todo.ID), patchReq)
+	_, err := ser.UpdateTodo(strconv.Itoa(todo.TodoID), testUserID, patchReq)
 	if err == nil {
 		t.Errorf("エラーが返っていない")
 	}
@@ -185,12 +187,12 @@ func TestDeleteTodo_UnknownID(t *testing.T) {
 
 	ser := Setup()
 
-	_, createdErr := ser.CreateTodo("test")
+	_, createdErr := ser.CreateTodo("test", testUserID)
 	if createdErr != nil {
 		t.Fatalf("エラー: %v", createdErr)
 	}
 
-	deleteErr := ser.DeleteTodo("hoge")
+	deleteErr := ser.DeleteTodo("hoge", testUserID)
 	if deleteErr == nil {
 		t.Errorf("存在しないタスクを削除")
 	}
@@ -200,37 +202,38 @@ func TestDeleteTodo_Success(t *testing.T) {
 
 	ser := Setup()
 
-	todo, createdErr := ser.CreateTodo("test")
+	todo, createdErr := ser.CreateTodo("test", testUserID)
 	if createdErr != nil {
 		t.Fatalf("エラー: %v", createdErr)
 	}
 
-	deleteErr := ser.DeleteTodo(strconv.Itoa(todo.ID))
+	deleteErr := ser.DeleteTodo(strconv.Itoa(todo.TodoID), testUserID)
 	if deleteErr != nil {
 		t.Fatalf("エラー: %v", deleteErr)
 	}
 
-	allTodos, getError := ser.GetTodos()
+	allTodos, getError := ser.GetTodos(testUserID)
 	if getError != nil {
 		t.Fatalf("エラー: %v", getError)
 	}
 
 	for _, getTodo := range allTodos {
-		if getTodo.ID == todo.ID {
+		if getTodo.TodoID == todo.TodoID {
 			t.Errorf("削除に失敗")
 		}
 	}
 }
 
 func TestDeleteTodo_Mock(t *testing.T) {
+
 	ser, m := SetupMock()
 
-	todo, createdErr := ser.CreateTodo("test")
+	todo, createdErr := ser.CreateTodo("test", testUserID)
 	if createdErr != nil {
 		t.Fatalf("エラー: %v", createdErr)
 	}
 
-	err := ser.DeleteTodo(strconv.Itoa(todo.ID))
+	err := ser.DeleteTodo(strconv.Itoa(todo.TodoID), testUserID)
 	if err != nil {
 		t.Errorf("エラー: %v", err)
 	}
@@ -239,5 +242,114 @@ func TestDeleteTodo_Mock(t *testing.T) {
 	}
 	if m.Todo != todo {
 		t.Errorf("mock内のtodoが不一致")
+	}
+}
+
+func TestTableUpdateTodo(t *testing.T) {
+
+	tests := []struct {
+		name         string
+		createUserID int
+		updateUserID int
+		isErr        bool
+	}{
+		{"ServiceUpdate_Success", 0, 0, false},
+		{"ServiceUpdate_OtherUser", 0, 1, true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ser := Setup()
+
+			todo, createdErr := ser.CreateTodo("test", tt.createUserID)
+			if createdErr != nil {
+				t.Fatalf("エラー: %v", createdErr)
+			}
+
+			task := "update"
+			patchReq := models.PatchTodoRequest{
+				Task: &task,
+			}
+
+			_, err := ser.UpdateTodo(strconv.Itoa(todo.TodoID), tt.updateUserID, patchReq)
+			if (err != nil) != tt.isErr {
+				t.Errorf(
+					"%s: 想定=%v, 実際=%v",
+					tt.name,
+					tt.isErr,
+					(err != nil),
+				)
+			}
+		})
+	}
+}
+
+func TestTableDeleteTodo(t *testing.T) {
+
+	tests := []struct {
+		name         string
+		createUserID int
+		deleteUserID int
+		isErr        bool
+	}{
+		{"ServiceDelete_Success", 0, 0, false},
+		{"ServiceDelete_OtherUser", 0, 1, true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ser := Setup()
+
+			todo, createdErr := ser.CreateTodo("test", tt.createUserID)
+			if createdErr != nil {
+				t.Fatalf("エラー: %v", createdErr)
+			}
+
+			err := ser.DeleteTodo(strconv.Itoa(todo.TodoID), tt.deleteUserID)
+			if (err != nil) != tt.isErr {
+				t.Errorf(
+					"%s: 想定=%v, 実際=%v",
+					tt.name,
+					tt.isErr,
+					(err != nil),
+				)
+			}
+		})
+	}
+}
+
+func TestTableGetTodos(t *testing.T) {
+
+	tests := []struct {
+		name         string
+		createUserID int
+		getUserID    int
+		todosCount   int
+	}{
+		{"ServiceGet_Success", 0, 0, 1},
+		{"ServiceGet_OtherUser", 0, 1, 0},
+	}
+
+	for _, tt := range tests {
+
+		t.Run(tt.name, func(t *testing.T) {
+			ser := Setup()
+
+			_, createdErr := ser.CreateTodo("test", tt.createUserID)
+			if createdErr != nil {
+				t.Fatalf("エラー: %v", createdErr)
+			}
+
+			todos, _ := ser.GetTodos(tt.getUserID)
+			count := len(todos)
+			if count != tt.todosCount {
+				t.Errorf(
+					"%s: 想定=%v, 実際=%v",
+					tt.name,
+					tt.todosCount,
+					count,
+				)
+			}
+		})
 	}
 }

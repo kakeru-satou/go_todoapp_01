@@ -1,9 +1,12 @@
 package router
 
 import (
+	"context"
 	"encoding/json"
+	"go-learning/todoApp/auth"
 	"go-learning/todoApp/db"
 	"go-learning/todoApp/handlers"
+	"go-learning/todoApp/middleware"
 	"go-learning/todoApp/models"
 	"go-learning/todoApp/repositories"
 	"go-learning/todoApp/services"
@@ -15,7 +18,10 @@ import (
 	"testing"
 )
 
+const testUserID = 0
+
 func Setup() (*http.ServeMux, *services.TodoService) {
+
 	db.Init()
 
 	rep := repositories.TodoRepository{}
@@ -41,6 +47,9 @@ func SendRequest(mux *http.ServeMux, method string, path string, body ...string)
 
 	w := httptest.NewRecorder()
 
+	ctx := context.WithValue(req.Context(), middleware.UserContextKey, auth.AccessTokenClaims{UserID: testUserID})
+	req = req.WithContext(ctx)
+
 	mux.ServeHTTP(w, req)
 
 	return w
@@ -50,7 +59,7 @@ func TestRouterGet_Success(t *testing.T) {
 
 	mux, ser := Setup()
 
-	_, err := ser.CreateTodo("test")
+	_, err := ser.CreateTodo("test", testUserID)
 
 	if err != nil {
 		t.Fatalf("エラー: %v", err)
@@ -122,13 +131,13 @@ func TestRouterPatch_IsDoneSuccess(t *testing.T) {
 
 	mux, ser := Setup()
 
-	todo, err := ser.CreateTodo("test")
+	todo, err := ser.CreateTodo("test", testUserID)
 
 	if err != nil {
 		t.Fatalf("エラー: %v", err)
 	}
 
-	id := strconv.Itoa(todo.ID)
+	id := strconv.Itoa(todo.TodoID)
 
 	w := SendRequest(mux, http.MethodPatch, "/api/todoList/"+id, `{"isDone":true}`)
 
@@ -168,13 +177,13 @@ func TestRouterPatch_IsDoneSuccess(t *testing.T) {
 func TestRouterPatch_TaskSuccess(t *testing.T) {
 	mux, ser := Setup()
 
-	todo, err := ser.CreateTodo("test")
+	todo, err := ser.CreateTodo("test", testUserID)
 
 	if err != nil {
 		t.Fatalf("エラー: %v", err)
 	}
 
-	id := strconv.Itoa(todo.ID)
+	id := strconv.Itoa(todo.TodoID)
 
 	w := SendRequest(mux, http.MethodPatch, "/api/todoList/"+id, `{"task":"Test"}`)
 
@@ -217,15 +226,15 @@ func TestRouterDelete_Success(t *testing.T) {
 
 	repo := repositories.TodoRepository{}
 
-	todo, err := ser.CreateTodo("test")
+	todo, err := ser.CreateTodo("test", testUserID)
 
 	if err != nil {
 		t.Fatalf("エラー: %v", err)
 	}
 
-	id := strconv.Itoa(todo.ID)
+	todoID := strconv.Itoa(todo.TodoID)
 
-	w := SendRequest(mux, http.MethodDelete, "/api/todoList/"+id)
+	w := SendRequest(mux, http.MethodDelete, "/api/todoList/"+todoID)
 
 	if w.Code != http.StatusNoContent {
 		t.Errorf(
@@ -243,7 +252,7 @@ func TestRouterDelete_Success(t *testing.T) {
 		)
 	}
 
-	_, err = repo.FindByID(id)
+	_, err = repo.FindByID(todoID, testUserID)
 
 	if err == nil {
 		t.Errorf("タスクの削除に失敗")
@@ -339,13 +348,13 @@ func TestRouterPatch_NotFound(t *testing.T) {
 func TestRouterPatch_EmptyTask(t *testing.T) {
 	mux, ser := Setup()
 
-	todo, err := ser.CreateTodo("test")
+	todo, err := ser.CreateTodo("test", testUserID)
 
 	if err != nil {
 		t.Fatalf("エラー: %v", err)
 	}
 
-	id := strconv.Itoa(todo.ID)
+	id := strconv.Itoa(todo.TodoID)
 
 	w := SendRequest(mux, http.MethodPatch, "/api/todoList/"+id, `{"task":""}`)
 
