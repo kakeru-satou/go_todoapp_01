@@ -3,9 +3,10 @@ package models
 import "errors"
 
 type Todo struct {
-	ID     int    `gorm:"primaryKey" json:"id"`
+	TodoID int    `gorm:"primaryKey" json:"id"`
 	Task   string `json:"task"`
 	IsDone bool   `json:"isDone"`
+	UserID int    `json:"userID"`
 }
 
 type CreateTodoRequest struct {

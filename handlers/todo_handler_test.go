@@ -2,17 +2,22 @@ package handlers
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
 	"testing"
 
+	"go-learning/todoApp/auth"
 	"go-learning/todoApp/db"
+	"go-learning/todoApp/middleware"
 	"go-learning/todoApp/models"
 	"go-learning/todoApp/repositories"
 	"go-learning/todoApp/services"
 )
+
+const testUserID = 0
 
 func Setup() (*TodoHandler, *services.TodoService) {
 
@@ -22,6 +27,13 @@ func Setup() (*TodoHandler, *services.TodoService) {
 	han := NewTodoHandler(ser, ser, ser, ser)
 
 	return han, ser
+}
+
+func NewAuthedRequest(req *http.Request) *http.Request {
+	ctx := context.WithValue(req.Context(), middleware.UserContextKey, auth.AccessTokenClaims{UserID: testUserID})
+	req = req.WithContext(ctx)
+
+	return req
 }
 
 func TestCreateTodoHandler_Success(t *testing.T) {
@@ -36,6 +48,8 @@ func TestCreateTodoHandler_Success(t *testing.T) {
 		bytes.NewBuffer([]byte(jsonStr)),
 	)
 	w := httptest.NewRecorder()
+
+	req = NewAuthedRequest(req)
 
 	han.CreateTodoHandler(w, req)
 
@@ -76,6 +90,8 @@ func TestCreateTodoHandler_EmptyTask(t *testing.T) {
 	)
 	w := httptest.NewRecorder()
 
+	req = NewAuthedRequest(req)
+
 	han.CreateTodoHandler(w, req)
 
 	if w.Code != http.StatusBadRequest {
@@ -91,8 +107,8 @@ func TestGetTodosHandler_Success(t *testing.T) {
 
 	han, ser := Setup()
 
-	_, err1 := ser.CreateTodo("test1")
-	_, err2 := ser.CreateTodo("test2")
+	_, err1 := ser.CreateTodo("test1", testUserID)
+	_, err2 := ser.CreateTodo("test2", testUserID)
 	if err1 != nil || err2 != nil {
 		t.Fatalf("todo作成に失敗")
 	}
@@ -104,6 +120,8 @@ func TestGetTodosHandler_Success(t *testing.T) {
 	)
 
 	w := httptest.NewRecorder()
+
+	req = NewAuthedRequest(req)
 
 	han.GetTodosHandler(w, req)
 
@@ -174,12 +192,12 @@ func TestDeleteTodoHandler_Success(t *testing.T) {
 
 	han, ser := Setup()
 
-	todo, err := ser.CreateTodo("test")
+	todo, err := ser.CreateTodo("test", testUserID)
 	if err != nil {
 		t.Fatalf("todo作成に失敗")
 	}
 
-	id := strconv.Itoa(todo.ID)
+	id := strconv.Itoa(todo.TodoID)
 
 	req := httptest.NewRequest(
 		http.MethodDelete,
@@ -188,6 +206,8 @@ func TestDeleteTodoHandler_Success(t *testing.T) {
 	)
 
 	w := httptest.NewRecorder()
+
+	req = NewAuthedRequest(req)
 
 	han.DeleteTodoHandler(w, req)
 
@@ -211,6 +231,8 @@ func TestDeleteTodoHandler_NotFound(t *testing.T) {
 	)
 
 	w := httptest.NewRecorder()
+
+	req = NewAuthedRequest(req)
 
 	han.DeleteTodoHandler(w, req)
 

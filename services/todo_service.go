@@ -23,12 +23,12 @@ func NewTodoService(allFinder repositories.AllFinder, creator repositories.Creat
 	}
 }
 
-func (s *TodoService) GetTodos() ([]models.Todo, error) {
+func (s *TodoService) GetTodos(userID int) ([]models.Todo, error) {
 
-	return s.allFinder.FindAllTodos()
+	return s.allFinder.FindAllTodos(userID)
 }
 
-func (s *TodoService) CreateTodo(task string) (models.Todo, error) {
+func (s *TodoService) CreateTodo(task string, userID int) (models.Todo, error) {
 
 	if task == "" {
 		return models.Todo{}, models.ErrTaskRequired
@@ -37,6 +37,7 @@ func (s *TodoService) CreateTodo(task string) (models.Todo, error) {
 	todo := models.Todo{
 		Task:   task,
 		IsDone: false,
+		UserID: userID,
 	}
 
 	return s.creator.Create(todo)
@@ -58,8 +59,8 @@ func (s *TodoService) CreateTodo(task string) (models.Todo, error) {
 // 	return repositories.Save(todo)
 // }
 
-func (s *TodoService) UpdateTodo(id string, patch models.PatchTodoRequest) (models.Todo, error) {
-	todo, err := s.finder.FindByID(id)
+func (s *TodoService) UpdateTodo(todoID string, userID int, patch models.PatchTodoRequest) (models.Todo, error) {
+	todo, err := s.finder.FindByID(todoID, userID)
 
 	if err != nil {
 		return todo, err
@@ -78,11 +79,11 @@ func (s *TodoService) UpdateTodo(id string, patch models.PatchTodoRequest) (mode
 	return s.saver.Save(todo)
 }
 
-func (s *TodoService) DeleteTodo(id string) error {
+func (s *TodoService) DeleteTodo(todoID string, userID int) error {
 
 	var todo models.Todo
 
-	todo, err := s.finder.FindByID(id)
+	todo, err := s.finder.FindByID(todoID, userID)
 
 	if err != nil {
 		return err
