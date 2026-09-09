@@ -22,7 +22,6 @@ type Deleter interface{ Delete(models.Todo) error }
 type TodoRepository struct{}
 
 func (r TodoRepository) FindAllTodos(userID int) ([]models.Todo, error) {
-
 	var todos []models.Todo
 	result := db.DB.Where("user_id = ?", userID).Find(&todos)
 
@@ -30,14 +29,12 @@ func (r TodoRepository) FindAllTodos(userID int) ([]models.Todo, error) {
 }
 
 func (r TodoRepository) Create(todo models.Todo) (models.Todo, error) {
-
 	result := db.DB.Create(&todo)
 
 	return todo, result.Error
 }
 
 func (r TodoRepository) FindByID(todoID string, userID int) (models.Todo, error) {
-
 	var todo models.Todo
 
 	result := db.DB.Where("user_id = ?", userID).First(&todo, todoID)
@@ -46,14 +43,12 @@ func (r TodoRepository) FindByID(todoID string, userID int) (models.Todo, error)
 }
 
 func (r TodoRepository) Save(todo models.Todo) (models.Todo, error) {
-
 	result := db.DB.Save(&todo)
 
 	return todo, result.Error
 }
 
 func (r TodoRepository) Delete(todo models.Todo) error {
-
 	result := db.DB.Delete(&todo)
 
 	return result.Error

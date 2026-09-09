@@ -20,7 +20,6 @@ import (
 const testUserID = 0
 
 func Setup() (*TodoHandler, *services.TodoService) {
-
 	db.Init()
 	rep := repositories.TodoRepository{}
 	ser := services.NewTodoService(rep, rep, rep, rep, rep)
@@ -37,7 +36,6 @@ func NewAuthedRequest(req *http.Request) *http.Request {
 }
 
 func TestCreateTodoHandler_Success(t *testing.T) {
-
 	han, _ := Setup()
 
 	jsonStr := `{"task":"test"}`
@@ -78,7 +76,6 @@ func TestCreateTodoHandler_Success(t *testing.T) {
 }
 
 func TestCreateTodoHandler_EmptyTask(t *testing.T) {
-
 	han, _ := Setup()
 
 	jsonStr := `{"task":""}`
@@ -104,7 +101,6 @@ func TestCreateTodoHandler_EmptyTask(t *testing.T) {
 }
 
 func TestGetTodosHandler_Success(t *testing.T) {
-
 	han, ser := Setup()
 
 	_, err1 := ser.CreateTodo("test1", testUserID)
@@ -189,7 +185,6 @@ func TestGetTodosHandler_Success(t *testing.T) {
 // }
 
 func TestDeleteTodoHandler_Success(t *testing.T) {
-
 	han, ser := Setup()
 
 	todo, err := ser.CreateTodo("test", testUserID)
@@ -221,7 +216,6 @@ func TestDeleteTodoHandler_Success(t *testing.T) {
 }
 
 func TestDeleteTodoHandler_NotFound(t *testing.T) {
-
 	han, _ := Setup()
 
 	req := httptest.NewRequest(

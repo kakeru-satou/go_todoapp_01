@@ -12,11 +12,9 @@ type Handler interface {
 }
 
 func SetupRoutes(h Handler) *http.ServeMux {
-
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/api/todoList", func(w http.ResponseWriter, r *http.Request) {
-
 		switch r.Method {
 		case http.MethodGet:
 			h.GetTodosHandler(w, r)
@@ -30,7 +28,6 @@ func SetupRoutes(h Handler) *http.ServeMux {
 	})
 
 	mux.HandleFunc("/api/todoList/", func(w http.ResponseWriter, r *http.Request) {
-
 		switch r.Method {
 		case http.MethodPatch:
 			h.PatchTodoHandler(w, r)

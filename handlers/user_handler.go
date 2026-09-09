@@ -27,7 +27,6 @@ func NewUserHandler(userCreator UserCreator, userFinder UserFinder) *UserHandler
 }
 
 func (h *UserHandler) SignupHandler(w http.ResponseWriter, r *http.Request) {
-
 	var req models.SignupRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -54,7 +53,6 @@ func (h *UserHandler) SignupHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserHandler) SigninHandler(w http.ResponseWriter, r *http.Request) {
-
 	var req models.SigninRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {

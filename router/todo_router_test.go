@@ -21,7 +21,6 @@ import (
 const testUserID = 0
 
 func Setup() (*http.ServeMux, *services.TodoService) {
-
 	db.Init()
 
 	rep := repositories.TodoRepository{}
@@ -32,7 +31,6 @@ func Setup() (*http.ServeMux, *services.TodoService) {
 }
 
 func SendRequest(mux *http.ServeMux, method string, path string, body ...string) *httptest.ResponseRecorder {
-
 	var reader io.Reader
 
 	if len(body) > 0 {
@@ -56,7 +54,6 @@ func SendRequest(mux *http.ServeMux, method string, path string, body ...string)
 }
 
 func TestRouterGet_Success(t *testing.T) {
-
 	mux, ser := Setup()
 
 	_, err := ser.CreateTodo("test", testUserID)
@@ -97,7 +94,6 @@ func TestRouterGet_Success(t *testing.T) {
 }
 
 func TestRouterPost_Success(t *testing.T) {
-
 	mux, _ := Setup()
 
 	w := SendRequest(mux, http.MethodPost, "/api/todoList", `{"task":"test"}`)
@@ -128,7 +124,6 @@ func TestRouterPost_Success(t *testing.T) {
 }
 
 func TestRouterPatch_IsDoneSuccess(t *testing.T) {
-
 	mux, ser := Setup()
 
 	todo, err := ser.CreateTodo("test", testUserID)
@@ -221,7 +216,6 @@ func TestRouterPatch_TaskSuccess(t *testing.T) {
 }
 
 func TestRouterDelete_Success(t *testing.T) {
-
 	mux, ser := Setup()
 
 	repo := repositories.TodoRepository{}

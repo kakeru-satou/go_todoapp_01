@@ -9,14 +9,14 @@ import (
 const testUserID = 0
 
 func Setup() *TodoService {
-	rep := NewFakeRepository()
+	rep := NewFakeTodoRepository()
 	ser := NewTodoService(rep, rep, rep, rep, rep)
 
 	return ser
 }
 
 func SetupMock() (*TodoService, *MockDeleter) {
-	rep := NewFakeRepository()
+	rep := NewFakeTodoRepository()
 	deleter := MockDeleter{}
 	ser := NewTodoService(rep, rep, rep, rep, &deleter)
 
@@ -24,7 +24,6 @@ func SetupMock() (*TodoService, *MockDeleter) {
 }
 
 func TestCreateTodo_EmptyTask(t *testing.T) {
-
 	ser := Setup()
 	todo, err := ser.CreateTodo("", testUserID)
 
@@ -38,7 +37,6 @@ func TestCreateTodo_EmptyTask(t *testing.T) {
 }
 
 func TestCreateTodo_Success(t *testing.T) {
-
 	ser := Setup()
 	task := "test"
 
@@ -97,7 +95,6 @@ func TestCreateTodo_Success(t *testing.T) {
 // }
 
 func TestUpdateTodoIsDone_Success(t *testing.T) {
-
 	ser := Setup()
 
 	todo, createdErr := ser.CreateTodo("test", testUserID)
@@ -123,7 +120,6 @@ func TestUpdateTodoIsDone_Success(t *testing.T) {
 }
 
 func TestUpdateTodoTask_Success(t *testing.T) {
-
 	ser := Setup()
 
 	todo, createdErr := ser.CreateTodo("test", testUserID)
@@ -149,7 +145,6 @@ func TestUpdateTodoTask_Success(t *testing.T) {
 }
 
 func TestUpdateTodoTask_UnknownID(t *testing.T) {
-
 	ser := Setup()
 
 	task := "test"
@@ -164,7 +159,6 @@ func TestUpdateTodoTask_UnknownID(t *testing.T) {
 }
 
 func TestUpdateTodoTask_EmptyTask(t *testing.T) {
-
 	ser := Setup()
 
 	todo, createdErr := ser.CreateTodo("test", testUserID)
@@ -184,7 +178,6 @@ func TestUpdateTodoTask_EmptyTask(t *testing.T) {
 }
 
 func TestDeleteTodo_UnknownID(t *testing.T) {
-
 	ser := Setup()
 
 	_, createdErr := ser.CreateTodo("test", testUserID)
@@ -199,7 +192,6 @@ func TestDeleteTodo_UnknownID(t *testing.T) {
 }
 
 func TestDeleteTodo_Success(t *testing.T) {
-
 	ser := Setup()
 
 	todo, createdErr := ser.CreateTodo("test", testUserID)
@@ -225,7 +217,6 @@ func TestDeleteTodo_Success(t *testing.T) {
 }
 
 func TestDeleteTodo_Mock(t *testing.T) {
-
 	ser, m := SetupMock()
 
 	todo, createdErr := ser.CreateTodo("test", testUserID)
@@ -246,7 +237,6 @@ func TestDeleteTodo_Mock(t *testing.T) {
 }
 
 func TestTableUpdateTodo(t *testing.T) {
-
 	tests := []struct {
 		name         string
 		createUserID int
@@ -285,7 +275,6 @@ func TestTableUpdateTodo(t *testing.T) {
 }
 
 func TestTableDeleteTodo(t *testing.T) {
-
 	tests := []struct {
 		name         string
 		createUserID int
@@ -319,7 +308,6 @@ func TestTableDeleteTodo(t *testing.T) {
 }
 
 func TestTableGetTodos(t *testing.T) {
-
 	tests := []struct {
 		name         string
 		createUserID int
