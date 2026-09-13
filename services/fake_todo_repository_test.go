@@ -6,21 +6,21 @@ import (
 	"strconv"
 )
 
-type FakeRepository struct {
+type FakeTodoRepository struct {
 	todos  map[int]models.Todo
 	nextID int
 	userID int
 }
 
-func NewFakeRepository() *FakeRepository {
-	return &FakeRepository{
+func NewFakeTodoRepository() *FakeTodoRepository {
+	return &FakeTodoRepository{
 		todos:  make(map[int]models.Todo),
 		nextID: 1,
 		userID: 0,
 	}
 }
 
-func (f *FakeRepository) FindAllTodos(userID int) ([]models.Todo, error) {
+func (f *FakeTodoRepository) FindAllTodos(userID int) ([]models.Todo, error) {
 	var todoList []models.Todo
 
 	for _, todo := range f.todos {
@@ -32,7 +32,7 @@ func (f *FakeRepository) FindAllTodos(userID int) ([]models.Todo, error) {
 	return todoList, nil
 }
 
-func (f *FakeRepository) Create(todo models.Todo) (models.Todo, error) {
+func (f *FakeTodoRepository) Create(todo models.Todo) (models.Todo, error) {
 	todo.TodoID = f.nextID
 
 	f.todos[f.nextID] = todo
@@ -42,7 +42,7 @@ func (f *FakeRepository) Create(todo models.Todo) (models.Todo, error) {
 	return todo, nil
 }
 
-func (f *FakeRepository) FindByID(findID string, userID int) (models.Todo, error) {
+func (f *FakeTodoRepository) FindByID(findID string, userID int) (models.Todo, error) {
 	findTodoID, err := strconv.Atoi(findID)
 
 	if err != nil {
@@ -58,13 +58,13 @@ func (f *FakeRepository) FindByID(findID string, userID int) (models.Todo, error
 	return findTodo, err
 }
 
-func (f *FakeRepository) Save(todo models.Todo) (models.Todo, error) {
+func (f *FakeTodoRepository) Save(todo models.Todo) (models.Todo, error) {
 	f.todos[todo.TodoID] = todo
 
 	return todo, nil
 }
 
-func (f *FakeRepository) Delete(todo models.Todo) error {
+func (f *FakeTodoRepository) Delete(todo models.Todo) error {
 	delete(f.todos, todo.TodoID)
 
 	return nil

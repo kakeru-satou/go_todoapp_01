@@ -24,12 +24,10 @@ func NewTodoService(allFinder repositories.AllFinder, creator repositories.Creat
 }
 
 func (s *TodoService) GetTodos(userID int) ([]models.Todo, error) {
-
 	return s.allFinder.FindAllTodos(userID)
 }
 
 func (s *TodoService) CreateTodo(task string, userID int) (models.Todo, error) {
-
 	if task == "" {
 		return models.Todo{}, models.ErrTaskRequired
 	}
@@ -80,7 +78,6 @@ func (s *TodoService) UpdateTodo(todoID string, userID int, patch models.PatchTo
 }
 
 func (s *TodoService) DeleteTodo(todoID string, userID int) error {
-
 	var todo models.Todo
 
 	todo, err := s.finder.FindByID(todoID, userID)

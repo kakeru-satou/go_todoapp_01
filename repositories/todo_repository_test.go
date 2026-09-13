@@ -8,7 +8,6 @@ import (
 )
 
 func TestCreate_Success(t *testing.T) {
-
 	db.Init()
 	repo := TodoRepository{}
 	todo := models.Todo{
@@ -31,7 +30,6 @@ func TestCreate_Success(t *testing.T) {
 }
 
 func TestFindByID_UnknownID(t *testing.T) {
-
 	db.Init()
 	repo := TodoRepository{}
 	todo := models.Todo{
@@ -51,7 +49,6 @@ func TestFindByID_UnknownID(t *testing.T) {
 }
 
 func TestFindByID_Success(t *testing.T) {
-
 	db.Init()
 	repo := TodoRepository{}
 	todo := models.Todo{
@@ -74,7 +71,6 @@ func TestFindByID_Success(t *testing.T) {
 }
 
 func TestSave_Success(t *testing.T) {
-
 	db.Init()
 	repo := TodoRepository{}
 	todo := models.Todo{
@@ -107,7 +103,6 @@ func TestSave_Success(t *testing.T) {
 }
 
 func TestDelete_Success(t *testing.T) {
-
 	db.Init()
 	repo := TodoRepository{}
 	todo := models.Todo{

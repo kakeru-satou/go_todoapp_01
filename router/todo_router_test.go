@@ -1,7 +1,6 @@
 package router
 
 import (
-	"context"
 	"encoding/json"
 	"go-learning/todoApp/auth"
 	"go-learning/todoApp/db"
@@ -20,19 +19,18 @@ import (
 
 const testUserID = 0
 
-func Setup() (*http.ServeMux, *services.TodoService) {
-
+func TodoRouteTestSetup() (http.Handler, *services.TodoService) {
 	db.Init()
 
 	rep := repositories.TodoRepository{}
 	ser := services.NewTodoService(rep, rep, rep, rep, rep)
 	han := handlers.NewTodoHandler(ser, ser, ser, ser)
+	mux := SetupRoutes(han)
 
-	return SetupRoutes(han), ser
+	return middleware.Middleware(mux), ser
 }
 
-func SendRequest(mux *http.ServeMux, method string, path string, body ...string) *httptest.ResponseRecorder {
-
+func SendTodoRequest(t *testing.T, mux http.Handler, method string, path string, body ...string) *httptest.ResponseRecorder {
 	var reader io.Reader
 
 	if len(body) > 0 {
@@ -45,10 +43,12 @@ func SendRequest(mux *http.ServeMux, method string, path string, body ...string)
 		reader,
 	)
 
+	token, err := auth.GenerateAccessToken(testUserID, "test", "test")
+	if err != nil {
+		t.Fatalf("エラー:%v", err)
+	}
 	w := httptest.NewRecorder()
-
-	ctx := context.WithValue(req.Context(), middleware.UserContextKey, auth.AccessTokenClaims{UserID: testUserID})
-	req = req.WithContext(ctx)
+	req.Header.Set("Authorization", "Bearer "+token)
 
 	mux.ServeHTTP(w, req)
 
@@ -56,8 +56,7 @@ func SendRequest(mux *http.ServeMux, method string, path string, body ...string)
 }
 
 func TestRouterGet_Success(t *testing.T) {
-
-	mux, ser := Setup()
+	mux, ser := TodoRouteTestSetup()
 
 	_, err := ser.CreateTodo("test", testUserID)
 
@@ -65,7 +64,7 @@ func TestRouterGet_Success(t *testing.T) {
 		t.Fatalf("エラー: %v", err)
 	}
 
-	w := SendRequest(mux, http.MethodGet, "/api/todoList")
+	w := SendTodoRequest(t, mux, http.MethodGet, "/api/todoList")
 
 	if w.Code != http.StatusOK {
 		t.Errorf(
@@ -97,10 +96,9 @@ func TestRouterGet_Success(t *testing.T) {
 }
 
 func TestRouterPost_Success(t *testing.T) {
+	mux, _ := TodoRouteTestSetup()
 
-	mux, _ := Setup()
-
-	w := SendRequest(mux, http.MethodPost, "/api/todoList", `{"task":"test"}`)
+	w := SendTodoRequest(t, mux, http.MethodPost, "/api/todoList", `{"task":"test"}`)
 
 	if w.Code != http.StatusCreated {
 		t.Errorf(
@@ -128,8 +126,7 @@ func TestRouterPost_Success(t *testing.T) {
 }
 
 func TestRouterPatch_IsDoneSuccess(t *testing.T) {
-
-	mux, ser := Setup()
+	mux, ser := TodoRouteTestSetup()
 
 	todo, err := ser.CreateTodo("test", testUserID)
 
@@ -139,7 +136,7 @@ func TestRouterPatch_IsDoneSuccess(t *testing.T) {
 
 	id := strconv.Itoa(todo.TodoID)
 
-	w := SendRequest(mux, http.MethodPatch, "/api/todoList/"+id, `{"isDone":true}`)
+	w := SendTodoRequest(t, mux, http.MethodPatch, "/api/todoList/"+id, `{"isDone":true}`)
 
 	if w.Code != http.StatusOK {
 		t.Errorf(
@@ -175,7 +172,7 @@ func TestRouterPatch_IsDoneSuccess(t *testing.T) {
 }
 
 func TestRouterPatch_TaskSuccess(t *testing.T) {
-	mux, ser := Setup()
+	mux, ser := TodoRouteTestSetup()
 
 	todo, err := ser.CreateTodo("test", testUserID)
 
@@ -185,7 +182,7 @@ func TestRouterPatch_TaskSuccess(t *testing.T) {
 
 	id := strconv.Itoa(todo.TodoID)
 
-	w := SendRequest(mux, http.MethodPatch, "/api/todoList/"+id, `{"task":"Test"}`)
+	w := SendTodoRequest(t, mux, http.MethodPatch, "/api/todoList/"+id, `{"task":"Test"}`)
 
 	if w.Code != http.StatusOK {
 		t.Errorf(
@@ -221,8 +218,7 @@ func TestRouterPatch_TaskSuccess(t *testing.T) {
 }
 
 func TestRouterDelete_Success(t *testing.T) {
-
-	mux, ser := Setup()
+	mux, ser := TodoRouteTestSetup()
 
 	repo := repositories.TodoRepository{}
 
@@ -234,7 +230,7 @@ func TestRouterDelete_Success(t *testing.T) {
 
 	todoID := strconv.Itoa(todo.TodoID)
 
-	w := SendRequest(mux, http.MethodDelete, "/api/todoList/"+todoID)
+	w := SendTodoRequest(t, mux, http.MethodDelete, "/api/todoList/"+todoID)
 
 	if w.Code != http.StatusNoContent {
 		t.Errorf(
@@ -260,9 +256,9 @@ func TestRouterDelete_Success(t *testing.T) {
 }
 
 func TestRouterMethodNotAllowed_Success(t *testing.T) {
-	mux, _ := Setup()
+	mux, _ := TodoRouteTestSetup()
 
-	w := SendRequest(mux, http.MethodPatch, "/api/todoList")
+	w := SendTodoRequest(t, mux, http.MethodPatch, "/api/todoList")
 
 	if w.Code != http.StatusMethodNotAllowed {
 		t.Errorf(
@@ -284,9 +280,9 @@ func TestRouterMethodNotAllowed_Success(t *testing.T) {
 }
 
 func TestRouterGet_NotFound(t *testing.T) {
-	mux, _ := Setup()
+	mux, _ := TodoRouteTestSetup()
 
-	w := SendRequest(mux, http.MethodGet, "/api/unknown")
+	w := SendTodoRequest(t, mux, http.MethodGet, "/api/unknown")
 
 	if w.Code != http.StatusNotFound {
 		t.Errorf(
@@ -298,9 +294,9 @@ func TestRouterGet_NotFound(t *testing.T) {
 }
 
 func TestRouterPost_EmptyTask(t *testing.T) {
-	mux, _ := Setup()
+	mux, _ := TodoRouteTestSetup()
 
-	w := SendRequest(mux, http.MethodPost, "/api/todoList", `{"task":""}`)
+	w := SendTodoRequest(t, mux, http.MethodPost, "/api/todoList", `{"task":""}`)
 
 	if w.Code != http.StatusBadRequest {
 		t.Errorf(
@@ -322,9 +318,9 @@ func TestRouterPost_EmptyTask(t *testing.T) {
 }
 
 func TestRouterPatch_NotFound(t *testing.T) {
-	mux, _ := Setup()
+	mux, _ := TodoRouteTestSetup()
 
-	w := SendRequest(mux, http.MethodPatch, "/api/todoList/99999", `{"task":"Test"}`)
+	w := SendTodoRequest(t, mux, http.MethodPatch, "/api/todoList/99999", `{"task":"Test"}`)
 
 	if w.Code != http.StatusNotFound {
 		t.Errorf(
@@ -346,7 +342,7 @@ func TestRouterPatch_NotFound(t *testing.T) {
 }
 
 func TestRouterPatch_EmptyTask(t *testing.T) {
-	mux, ser := Setup()
+	mux, ser := TodoRouteTestSetup()
 
 	todo, err := ser.CreateTodo("test", testUserID)
 
@@ -356,7 +352,7 @@ func TestRouterPatch_EmptyTask(t *testing.T) {
 
 	id := strconv.Itoa(todo.TodoID)
 
-	w := SendRequest(mux, http.MethodPatch, "/api/todoList/"+id, `{"task":""}`)
+	w := SendTodoRequest(t, mux, http.MethodPatch, "/api/todoList/"+id, `{"task":""}`)
 
 	if w.Code != http.StatusBadRequest {
 		t.Errorf(
@@ -378,9 +374,9 @@ func TestRouterPatch_EmptyTask(t *testing.T) {
 }
 
 func TestRouterDelete_NotFound(t *testing.T) {
-	mux, _ := Setup()
+	mux, _ := TodoRouteTestSetup()
 
-	w := SendRequest(mux, http.MethodDelete, "/api/todoList/99999")
+	w := SendTodoRequest(t, mux, http.MethodDelete, "/api/todoList/99999")
 
 	if w.Code != http.StatusNotFound {
 		t.Errorf(
@@ -415,9 +411,9 @@ func TestTableRouter(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mux, _ := Setup()
+			mux, _ := TodoRouteTestSetup()
 
-			w := SendRequest(mux, tt.method, tt.path)
+			w := SendTodoRequest(t, mux, tt.method, tt.path)
 
 			if w.Code != tt.status {
 				t.Errorf(

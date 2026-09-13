@@ -42,25 +42,21 @@ func NewTodoHandler(lister Lister, creator Creator, updater Updater, deleter Del
 }
 
 func getIDFromPath(path string) string {
-
 	return strings.TrimPrefix(path, "/api/todoList/")
 }
 
 func writeJSON(w http.ResponseWriter, status int, v any) error {
-
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	return json.NewEncoder(w).Encode(v)
 }
 
 func IndexHandler(w http.ResponseWriter, r *http.Request) {
-
 	tmpl := template.Must(template.ParseFiles("static/index.html"))
 	tmpl.Execute(w, nil)
 }
 
 func (h *TodoHandler) GetTodosHandler(w http.ResponseWriter, r *http.Request) {
-
 	claims := r.Context().Value(middleware.UserContextKey).(auth.AccessTokenClaims)
 	todos, err := h.lister.GetTodos(claims.UserID)
 
@@ -77,7 +73,6 @@ func (h *TodoHandler) GetTodosHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *TodoHandler) CreateTodoHandler(w http.ResponseWriter, r *http.Request) {
-
 	var req models.CreateTodoRequest
 	claims := r.Context().Value(middleware.UserContextKey).(auth.AccessTokenClaims)
 
@@ -149,7 +144,6 @@ func (h *TodoHandler) PatchTodoHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *TodoHandler) DeleteTodoHandler(w http.ResponseWriter, r *http.Request) {
-
 	todoID := getIDFromPath(r.URL.Path)
 	claims := r.Context().Value(middleware.UserContextKey).(auth.AccessTokenClaims)
 

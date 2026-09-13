@@ -8,15 +8,15 @@ import (
 
 const testUserID = 0
 
-func Setup() *TodoService {
-	rep := NewFakeRepository()
+func TodoSetup() *TodoService {
+	rep := NewFakeTodoRepository()
 	ser := NewTodoService(rep, rep, rep, rep, rep)
 
 	return ser
 }
 
 func SetupMock() (*TodoService, *MockDeleter) {
-	rep := NewFakeRepository()
+	rep := NewFakeTodoRepository()
 	deleter := MockDeleter{}
 	ser := NewTodoService(rep, rep, rep, rep, &deleter)
 
@@ -24,8 +24,7 @@ func SetupMock() (*TodoService, *MockDeleter) {
 }
 
 func TestCreateTodo_EmptyTask(t *testing.T) {
-
-	ser := Setup()
+	ser := TodoSetup()
 	todo, err := ser.CreateTodo("", testUserID)
 
 	if err == nil {
@@ -38,8 +37,7 @@ func TestCreateTodo_EmptyTask(t *testing.T) {
 }
 
 func TestCreateTodo_Success(t *testing.T) {
-
-	ser := Setup()
+	ser := TodoSetup()
 	task := "test"
 
 	todo, err := ser.CreateTodo(task, testUserID)
@@ -97,8 +95,7 @@ func TestCreateTodo_Success(t *testing.T) {
 // }
 
 func TestUpdateTodoIsDone_Success(t *testing.T) {
-
-	ser := Setup()
+	ser := TodoSetup()
 
 	todo, createdErr := ser.CreateTodo("test", testUserID)
 	if createdErr != nil {
@@ -123,8 +120,7 @@ func TestUpdateTodoIsDone_Success(t *testing.T) {
 }
 
 func TestUpdateTodoTask_Success(t *testing.T) {
-
-	ser := Setup()
+	ser := TodoSetup()
 
 	todo, createdErr := ser.CreateTodo("test", testUserID)
 	if createdErr != nil {
@@ -149,8 +145,7 @@ func TestUpdateTodoTask_Success(t *testing.T) {
 }
 
 func TestUpdateTodoTask_UnknownID(t *testing.T) {
-
-	ser := Setup()
+	ser := TodoSetup()
 
 	task := "test"
 	patchReq := models.PatchTodoRequest{
@@ -164,8 +159,7 @@ func TestUpdateTodoTask_UnknownID(t *testing.T) {
 }
 
 func TestUpdateTodoTask_EmptyTask(t *testing.T) {
-
-	ser := Setup()
+	ser := TodoSetup()
 
 	todo, createdErr := ser.CreateTodo("test", testUserID)
 	if createdErr != nil {
@@ -184,8 +178,7 @@ func TestUpdateTodoTask_EmptyTask(t *testing.T) {
 }
 
 func TestDeleteTodo_UnknownID(t *testing.T) {
-
-	ser := Setup()
+	ser := TodoSetup()
 
 	_, createdErr := ser.CreateTodo("test", testUserID)
 	if createdErr != nil {
@@ -199,8 +192,7 @@ func TestDeleteTodo_UnknownID(t *testing.T) {
 }
 
 func TestDeleteTodo_Success(t *testing.T) {
-
-	ser := Setup()
+	ser := TodoSetup()
 
 	todo, createdErr := ser.CreateTodo("test", testUserID)
 	if createdErr != nil {
@@ -225,7 +217,6 @@ func TestDeleteTodo_Success(t *testing.T) {
 }
 
 func TestDeleteTodo_Mock(t *testing.T) {
-
 	ser, m := SetupMock()
 
 	todo, createdErr := ser.CreateTodo("test", testUserID)
@@ -246,7 +237,6 @@ func TestDeleteTodo_Mock(t *testing.T) {
 }
 
 func TestTableUpdateTodo(t *testing.T) {
-
 	tests := []struct {
 		name         string
 		createUserID int
@@ -259,7 +249,7 @@ func TestTableUpdateTodo(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ser := Setup()
+			ser := TodoSetup()
 
 			todo, createdErr := ser.CreateTodo("test", tt.createUserID)
 			if createdErr != nil {
@@ -285,7 +275,6 @@ func TestTableUpdateTodo(t *testing.T) {
 }
 
 func TestTableDeleteTodo(t *testing.T) {
-
 	tests := []struct {
 		name         string
 		createUserID int
@@ -298,7 +287,7 @@ func TestTableDeleteTodo(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ser := Setup()
+			ser := TodoSetup()
 
 			todo, createdErr := ser.CreateTodo("test", tt.createUserID)
 			if createdErr != nil {
@@ -319,7 +308,6 @@ func TestTableDeleteTodo(t *testing.T) {
 }
 
 func TestTableGetTodos(t *testing.T) {
-
 	tests := []struct {
 		name         string
 		createUserID int
@@ -333,7 +321,7 @@ func TestTableGetTodos(t *testing.T) {
 	for _, tt := range tests {
 
 		t.Run(tt.name, func(t *testing.T) {
-			ser := Setup()
+			ser := TodoSetup()
 
 			_, createdErr := ser.CreateTodo("test", tt.createUserID)
 			if createdErr != nil {

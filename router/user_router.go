@@ -8,7 +8,6 @@ type UserHandler interface {
 }
 
 func SetupUserRoutes(h UserHandler) *http.ServeMux {
-
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/api/auth/signup", func(w http.ResponseWriter, r *http.Request) {

@@ -16,7 +16,6 @@ type AccessTokenClaims struct {
 const secretKey = "..."
 
 func GenerateAccessToken(userID int, name string, email string) (string, error) {
-
 	claims := AccessTokenClaims{
 		UserID:           userID,
 		Name:             name,
@@ -28,7 +27,6 @@ func GenerateAccessToken(userID int, name string, email string) (string, error) 
 }
 
 func VerifyAccessToken(token string) (AccessTokenClaims, error) {
-
 	claims := AccessTokenClaims{}
 
 	_, err := jwt.ParseWithClaims(token, &claims, func(*jwt.Token) (any, error) {
