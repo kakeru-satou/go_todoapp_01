@@ -90,3 +90,49 @@ func TestTableGetByEmail(t *testing.T) {
 		})
 	}
 }
+
+func TestTableGetByID(t *testing.T) {
+	tests := []struct {
+		name     string
+		isCreate bool
+		isErr    bool
+	}{
+		{"RepositoryGetID_Success", true, false},
+		{"RepositoryGetID_invalidID", false, true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			db.Init()
+			email := "test@test.com"
+			id := 999999999
+
+			rep := UserRepository{}
+			user := models.User{
+				Name:     "test",
+				Email:    email,
+				Password: "test",
+			}
+
+			db.DB.Where("email = ?", email).Delete(&models.User{})
+
+			if tt.isCreate {
+				user, err := rep.Create(user)
+				if err != nil {
+					t.Fatalf("エラー:%v", err)
+				}
+				id = user.ID
+			}
+
+			_, err := rep.GetByID(id)
+			if (err != nil) != tt.isErr {
+				t.Errorf(
+					"%s: 想定=%v, 実際=%v",
+					tt.name,
+					tt.isErr,
+					(err != nil),
+				)
+			}
+		})
+	}
+}
