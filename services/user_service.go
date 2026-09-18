@@ -55,3 +55,7 @@ func (s *UserService) Signin(email, password string) (string, error) {
 
 	return auth.GenerateAccessToken(user.ID, user.Name, user.Email)
 }
+
+func (s *UserService) GetUserProfile(id int) (models.User, error) {
+	return s.userFinder.GetByID(id)
+}

@@ -11,6 +11,7 @@ type UserCreator interface {
 
 type UserFinder interface {
 	GetByEmail(email string) (models.User, error)
+	GetByID(id int) (models.User, error)
 }
 
 type UserRepository struct{}
@@ -25,6 +26,14 @@ func (r UserRepository) GetByEmail(email string) (models.User, error) {
 	var user models.User
 
 	result := db.DB.First(&user, "email = ?", email)
+
+	return user, result.Error
+}
+
+func (r UserRepository) GetByID(id int) (models.User, error) {
+	var user models.User
+
+	result := db.DB.First(&user, id)
 
 	return user, result.Error
 }

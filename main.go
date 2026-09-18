@@ -39,10 +39,12 @@ func main() {
 	appMux := http.NewServeMux()
 
 	protectedTodo := middleware.Middleware(todoMux)
+	protectedUser := middleware.Middleware(userMux)
 	appMux.Handle("/api/todoList", protectedTodo)
 	appMux.Handle("/api/todoList/", protectedTodo)
 
 	appMux.Handle("/api/auth/", userMux)
+	appMux.Handle("/api/users/me", protectedUser)
 	appMux.Handle("/", http.FileServer(http.Dir("static")))
 
 	http.ListenAndServe(":8080", appMux)

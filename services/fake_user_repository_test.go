@@ -49,3 +49,13 @@ func (f *FakeUserRepository) GetByEmail(email string) (models.User, error) {
 
 	return foundUser, nil
 }
+
+func (f *FakeUserRepository) GetByID(id int) (models.User, error) {
+	findUser, ok := f.users[id]
+
+	if !ok || findUser.ID != id {
+		return findUser, errors.New("not found")
+	}
+
+	return findUser, nil
+}

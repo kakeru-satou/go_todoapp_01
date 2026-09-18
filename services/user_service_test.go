@@ -1,6 +1,8 @@
 package services
 
-import "testing"
+import (
+	"testing"
+)
 
 func UserSetup() *UserService {
 	rep := NewFakeUserRepository()
@@ -71,6 +73,43 @@ func TestTableSignin(t *testing.T) {
 			}
 
 			_, err = ser.Signin(tt.getEmail, tt.getPassword)
+			if (err != nil) != tt.isErr {
+				t.Errorf(
+					"%s: 想定=%v, 実際=%v",
+					tt.name,
+					tt.isErr,
+					(err != nil),
+				)
+			}
+		})
+	}
+}
+
+func TestTableGetUserProfile(t *testing.T) {
+	tests := []struct {
+		name     string
+		isCreate bool
+		isErr    bool
+	}{
+		{"ServiceGetUserProfile_Success", true, false},
+		{"ServiceGetUserProfile_invalidID", false, true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ser := UserSetup()
+			email := "test@test.com"
+			id := 9999999
+
+			if tt.isCreate {
+				user, _, err := ser.Signup("test", email, "test")
+				if err != nil {
+					t.Fatalf("エラー:%v", err)
+				}
+				id = user.ID
+			}
+
+			_, err := ser.GetUserProfile(id)
 			if (err != nil) != tt.isErr {
 				t.Errorf(
 					"%s: 想定=%v, 実際=%v",

@@ -2,6 +2,8 @@ package handlers
 
 import (
 	"encoding/json"
+	"go-learning/todoApp/auth"
+	"go-learning/todoApp/middleware"
 	"go-learning/todoApp/models"
 	"net/http"
 )
@@ -12,6 +14,7 @@ type UserCreator interface {
 
 type UserFinder interface {
 	Signin(email, password string) (string, error)
+	GetUserProfile(id int) (models.User, error)
 }
 
 type UserHandler struct {
@@ -72,6 +75,21 @@ func (h *UserHandler) SigninHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = writeJSON(w, http.StatusOK, res)
+	if err != nil {
+		http.Error(w, "failed to encode response", http.StatusInternalServerError)
+	}
+}
+
+func (h *UserHandler) MeHandler(w http.ResponseWriter, r *http.Request) {
+	claims := r.Context().Value(middleware.UserContextKey).(auth.AccessTokenClaims)
+
+	user, err := h.userFinder.GetUserProfile(claims.UserID)
+	if err != nil {
+		http.Error(w, "failed to get user", http.StatusNotFound)
+		return
+	}
+
+	err = writeJSON(w, http.StatusOK, user)
 	if err != nil {
 		http.Error(w, "failed to encode response", http.StatusInternalServerError)
 	}
