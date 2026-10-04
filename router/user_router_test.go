@@ -1,6 +1,7 @@
 package router
 
 import (
+	"encoding/json"
 	"fmt"
 	"go-learning/todoApp/auth"
 	"go-learning/todoApp/db"
@@ -58,16 +59,18 @@ func TestTableUserSignup(t *testing.T) {
 		path              string
 		status            int
 		isCreateSameEmail bool
+		isSuccess         bool
 	}{
-		{"RouterSignup_Success", "test@test.com", http.MethodPost, "/api/auth/signup", http.StatusCreated, false},
-		{"RouterSignup_SameEmail", "test@test.com", http.MethodPost, "/api/auth/signup", http.StatusBadRequest, true},
+		{"RouterSignup_Success", "test@test.com", http.MethodPost, "/api/auth/signup", http.StatusCreated, false, true},
+		{"RouterSignup_SameEmail", "test@test.com", http.MethodPost, "/api/auth/signup", http.StatusBadRequest, true, false},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mux, _ := UserRouterTestSetup(false)
+			meMux, _ := UserRouterTestSetup(true)
 			body := fmt.Sprintf(`{"name":"test","email":"%s","password":"test"}`, tt.email)
-
+			response := models.SignupResponse{}
 			db.DB.Where("email = ?", tt.email).Delete(&models.User{})
 
 			var w *httptest.ResponseRecorder
@@ -93,6 +96,30 @@ func TestTableUserSignup(t *testing.T) {
 					w.Code,
 				)
 			}
+			if tt.isSuccess {
+				err := json.Unmarshal(w.Body.Bytes(), &response)
+				if err != nil {
+					t.Fatalf("エラー: %v", err)
+				}
+				w = SendUserRequest(meMux, http.MethodGet, "/api/users/me", "", response.Token)
+				if w.Code != http.StatusOK {
+					t.Errorf(
+						"%s:想定ステータス: %d , 取得ステータス: %d",
+						tt.name,
+						http.StatusOK,
+						w.Code,
+					)
+				}
+
+				var responseUser models.User
+				err = json.Unmarshal(w.Body.Bytes(), &responseUser)
+				if err != nil {
+					t.Fatalf("response body: %v", err)
+				}
+				if responseUser.Email != tt.email {
+					t.Errorf("responseEmail:%s, email:%s", responseUser.Email, tt.email)
+				}
+			}
 		})
 	}
 }
@@ -107,17 +134,19 @@ func TestTableUserSignin(t *testing.T) {
 		method         string
 		path           string
 		status         int
+		isSuccess      bool
 	}{
-		{"RouterSignin_Success", "test@test.com", "test", "test@test.com", "test", http.MethodPost, "/api/auth/signin", http.StatusOK},
-		{"RouterSignin_InvalidEmail", "test@test.com", "test", "invalid@test.com", "test", http.MethodPost, "/api/auth/signin", http.StatusUnauthorized},
-		{"RouterSignin_InvalidPassword", "test@test.com", "test", "test@test.com", "invalid", http.MethodPost, "/api/auth/signin", http.StatusUnauthorized},
+		{"RouterSignin_Success", "test@test.com", "test", "test@test.com", "test", http.MethodPost, "/api/auth/signin", http.StatusOK, true},
+		{"RouterSignin_InvalidEmail", "test@test.com", "test", "invalid@test.com", "test", http.MethodPost, "/api/auth/signin", http.StatusUnauthorized, false},
+		{"RouterSignin_InvalidPassword", "test@test.com", "test", "test@test.com", "invalid", http.MethodPost, "/api/auth/signin", http.StatusUnauthorized, false},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mux, _ := UserRouterTestSetup(false)
+			meMux, _ := UserRouterTestSetup(true)
 			body := fmt.Sprintf(`{"name":"test","email":"%s","password":"%s"}`, tt.createEmail, tt.createPassword)
-
+			response := models.SigninResponse{}
 			db.DB.Where("email = ?", tt.createEmail).Delete(&models.User{})
 
 			var w *httptest.ResponseRecorder
@@ -142,6 +171,30 @@ func TestTableUserSignin(t *testing.T) {
 					tt.status,
 					w.Code,
 				)
+			}
+			if tt.isSuccess {
+				err := json.Unmarshal(w.Body.Bytes(), &response)
+				if err != nil {
+					t.Fatalf("エラー: %v", err)
+				}
+				w = SendUserRequest(meMux, http.MethodGet, "/api/users/me", "", response.Token)
+				if w.Code != http.StatusOK {
+					t.Errorf(
+						"%s:想定ステータス: %d , 取得ステータス: %d",
+						tt.name,
+						http.StatusOK,
+						w.Code,
+					)
+				}
+
+				var responseUser models.User
+				err = json.Unmarshal(w.Body.Bytes(), &responseUser)
+				if err != nil {
+					t.Fatalf("response body: %v", err)
+				}
+				if responseUser.Email != tt.signinEmail {
+					t.Errorf("responseEmail:%s, email:%s", responseUser.Email, tt.signinEmail)
+				}
 			}
 		})
 	}

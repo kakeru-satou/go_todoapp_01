@@ -3,7 +3,7 @@ package models
 import "errors"
 
 type Todo struct {
-	TodoID int    `gorm:"primaryKey" json:"id"`
+	ID     int    `gorm:"primaryKey" json:"id"`
 	Task   string `json:"task"`
 	IsDone bool   `json:"isDone"`
 	UserID int    `json:"userID"`

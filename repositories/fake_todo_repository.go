@@ -1,4 +1,4 @@
-package services
+package repositories
 
 import (
 	"errors"
@@ -33,7 +33,7 @@ func (f *FakeTodoRepository) FindAllTodos(userID int) ([]models.Todo, error) {
 }
 
 func (f *FakeTodoRepository) Create(todo models.Todo) (models.Todo, error) {
-	todo.TodoID = f.nextID
+	todo.ID = f.nextID
 
 	f.todos[f.nextID] = todo
 
@@ -59,13 +59,13 @@ func (f *FakeTodoRepository) FindByID(findID string, userID int) (models.Todo, e
 }
 
 func (f *FakeTodoRepository) Save(todo models.Todo) (models.Todo, error) {
-	f.todos[todo.TodoID] = todo
+	f.todos[todo.ID] = todo
 
 	return todo, nil
 }
 
 func (f *FakeTodoRepository) Delete(todo models.Todo) error {
-	delete(f.todos, todo.TodoID)
+	delete(f.todos, todo.ID)
 
 	return nil
 }

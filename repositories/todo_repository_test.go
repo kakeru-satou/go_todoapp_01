@@ -20,7 +20,7 @@ func TestCreate_Success(t *testing.T) {
 		t.Errorf("エラー: %v", createdErr)
 	}
 
-	foundTodo, foundErr := repo.FindByID(strconv.Itoa(createdTodo.TodoID), createdTodo.UserID)
+	foundTodo, foundErr := repo.FindByID(strconv.Itoa(createdTodo.ID), createdTodo.UserID)
 	if foundErr != nil {
 		t.Errorf("作成失敗")
 	}
@@ -61,7 +61,7 @@ func TestFindByID_Success(t *testing.T) {
 		t.Fatalf("エラー: %v", createdErr)
 	}
 
-	foundTodo, err := repo.FindByID(strconv.Itoa(createdTodo.TodoID), createdTodo.UserID)
+	foundTodo, err := repo.FindByID(strconv.Itoa(createdTodo.ID), createdTodo.UserID)
 	if err != nil {
 		t.Errorf("存在しないタスクの検索")
 	}
@@ -93,7 +93,7 @@ func TestSave_Success(t *testing.T) {
 		t.Errorf("エラー: %v", savedErr)
 	}
 
-	foundTodo, foundErr := repo.FindByID(strconv.Itoa(createdTodo.TodoID), savedTodo.UserID)
+	foundTodo, foundErr := repo.FindByID(strconv.Itoa(createdTodo.ID), savedTodo.UserID)
 	if foundErr != nil {
 		t.Fatalf("エラー: %v", foundErr)
 	}
@@ -120,7 +120,7 @@ func TestDelete_Success(t *testing.T) {
 		t.Errorf("エラー: %v", deletedErr)
 	}
 
-	_, foundErr := repo.FindByID(strconv.Itoa(createdTodo.TodoID), createdTodo.UserID)
+	_, foundErr := repo.FindByID(strconv.Itoa(createdTodo.ID), createdTodo.UserID)
 	if foundErr == nil {
 		t.Errorf("削除に失敗")
 	}

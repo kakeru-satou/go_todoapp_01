@@ -9,7 +9,7 @@ import (
 )
 
 type UserCreator interface {
-	Signup(name, email, password string) (models.User, string, error)
+	Signup(name, email, password string) (string, error)
 }
 
 type UserFinder interface {
@@ -37,14 +37,13 @@ func (h *UserHandler) SignupHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, token, err := h.userCreator.Signup(req.Name, req.Email, req.Password)
+	token, err := h.userCreator.Signup(req.Name, req.Email, req.Password)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	res := models.SignupResponse{
-		User:    user,
 		Message: "サインアップに成功",
 		Token:   token,
 	}

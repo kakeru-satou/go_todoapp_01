@@ -2,6 +2,7 @@ package services
 
 import (
 	"go-learning/todoApp/models"
+	"go-learning/todoApp/repositories"
 	"strconv"
 	"testing"
 )
@@ -9,15 +10,15 @@ import (
 const testUserID = 0
 
 func TodoSetup() *TodoService {
-	rep := NewFakeTodoRepository()
+	rep := repositories.NewFakeTodoRepository()
 	ser := NewTodoService(rep, rep, rep, rep, rep)
 
 	return ser
 }
 
-func SetupMock() (*TodoService, *MockDeleter) {
-	rep := NewFakeTodoRepository()
-	deleter := MockDeleter{}
+func SetupMock() (*TodoService, *repositories.MockDeleter) {
+	rep := repositories.NewFakeTodoRepository()
+	deleter := repositories.MockDeleter{}
 	ser := NewTodoService(rep, rep, rep, rep, &deleter)
 
 	return ser, &deleter
@@ -107,7 +108,7 @@ func TestUpdateTodoIsDone_Success(t *testing.T) {
 		IsDone: &isDone,
 	}
 
-	updatedTodo, err := ser.UpdateTodo(strconv.Itoa(todo.TodoID), testUserID, patchReq)
+	updatedTodo, err := ser.UpdateTodo(strconv.Itoa(todo.ID), testUserID, patchReq)
 	if err != nil {
 		t.Errorf("エラー: %v", err)
 	}
@@ -132,7 +133,7 @@ func TestUpdateTodoTask_Success(t *testing.T) {
 		Task: &task,
 	}
 
-	updatedTodo, err := ser.UpdateTodo(strconv.Itoa(todo.TodoID), testUserID, patchReq)
+	updatedTodo, err := ser.UpdateTodo(strconv.Itoa(todo.ID), testUserID, patchReq)
 	if err != nil {
 		t.Errorf("エラー: %v", err)
 	}
@@ -171,7 +172,7 @@ func TestUpdateTodoTask_EmptyTask(t *testing.T) {
 		Task: &task,
 	}
 
-	_, err := ser.UpdateTodo(strconv.Itoa(todo.TodoID), testUserID, patchReq)
+	_, err := ser.UpdateTodo(strconv.Itoa(todo.ID), testUserID, patchReq)
 	if err == nil {
 		t.Errorf("エラーが返っていない")
 	}
@@ -199,7 +200,7 @@ func TestDeleteTodo_Success(t *testing.T) {
 		t.Fatalf("エラー: %v", createdErr)
 	}
 
-	deleteErr := ser.DeleteTodo(strconv.Itoa(todo.TodoID), testUserID)
+	deleteErr := ser.DeleteTodo(strconv.Itoa(todo.ID), testUserID)
 	if deleteErr != nil {
 		t.Fatalf("エラー: %v", deleteErr)
 	}
@@ -210,7 +211,7 @@ func TestDeleteTodo_Success(t *testing.T) {
 	}
 
 	for _, getTodo := range allTodos {
-		if getTodo.TodoID == todo.TodoID {
+		if getTodo.ID == todo.ID {
 			t.Errorf("削除に失敗")
 		}
 	}
@@ -224,7 +225,7 @@ func TestDeleteTodo_Mock(t *testing.T) {
 		t.Fatalf("エラー: %v", createdErr)
 	}
 
-	err := ser.DeleteTodo(strconv.Itoa(todo.TodoID), testUserID)
+	err := ser.DeleteTodo(strconv.Itoa(todo.ID), testUserID)
 	if err != nil {
 		t.Errorf("エラー: %v", err)
 	}
@@ -261,7 +262,7 @@ func TestTableUpdateTodo(t *testing.T) {
 				Task: &task,
 			}
 
-			_, err := ser.UpdateTodo(strconv.Itoa(todo.TodoID), tt.updateUserID, patchReq)
+			_, err := ser.UpdateTodo(strconv.Itoa(todo.ID), tt.updateUserID, patchReq)
 			if (err != nil) != tt.isErr {
 				t.Errorf(
 					"%s: 想定=%v, 実際=%v",
@@ -294,7 +295,7 @@ func TestTableDeleteTodo(t *testing.T) {
 				t.Fatalf("エラー: %v", createdErr)
 			}
 
-			err := ser.DeleteTodo(strconv.Itoa(todo.TodoID), tt.deleteUserID)
+			err := ser.DeleteTodo(strconv.Itoa(todo.ID), tt.deleteUserID)
 			if (err != nil) != tt.isErr {
 				t.Errorf(
 					"%s: 想定=%v, 実際=%v",

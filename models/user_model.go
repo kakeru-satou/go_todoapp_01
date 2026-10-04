@@ -18,7 +18,6 @@ type SignupRequest struct {
 }
 
 type SignupResponse struct {
-	User    User   `json:"user"`
 	Message string `json:"message"`
 	Token   string `json:"token"`
 }

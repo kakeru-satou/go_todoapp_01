@@ -134,7 +134,7 @@ func TestRouterPatch_IsDoneSuccess(t *testing.T) {
 		t.Fatalf("エラー: %v", err)
 	}
 
-	id := strconv.Itoa(todo.TodoID)
+	id := strconv.Itoa(todo.ID)
 
 	w := SendTodoRequest(t, mux, http.MethodPatch, "/api/todoList/"+id, `{"isDone":true}`)
 
@@ -180,7 +180,7 @@ func TestRouterPatch_TaskSuccess(t *testing.T) {
 		t.Fatalf("エラー: %v", err)
 	}
 
-	id := strconv.Itoa(todo.TodoID)
+	id := strconv.Itoa(todo.ID)
 
 	w := SendTodoRequest(t, mux, http.MethodPatch, "/api/todoList/"+id, `{"task":"Test"}`)
 
@@ -228,7 +228,7 @@ func TestRouterDelete_Success(t *testing.T) {
 		t.Fatalf("エラー: %v", err)
 	}
 
-	todoID := strconv.Itoa(todo.TodoID)
+	todoID := strconv.Itoa(todo.ID)
 
 	w := SendTodoRequest(t, mux, http.MethodDelete, "/api/todoList/"+todoID)
 
@@ -350,7 +350,7 @@ func TestRouterPatch_EmptyTask(t *testing.T) {
 		t.Fatalf("エラー: %v", err)
 	}
 
-	id := strconv.Itoa(todo.TodoID)
+	id := strconv.Itoa(todo.ID)
 
 	w := SendTodoRequest(t, mux, http.MethodPatch, "/api/todoList/"+id, `{"task":""}`)
 
