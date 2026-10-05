@@ -19,7 +19,7 @@ import (
 
 const testUserID = 0
 
-func Setup() (*TodoHandler, *services.TodoService) {
+func TodoHandlerTestSetup() (*TodoHandler, *services.TodoService) {
 	db.Init()
 	rep := repositories.TodoRepository{}
 	ser := services.NewTodoService(rep, rep, rep, rep, rep)
@@ -36,7 +36,7 @@ func NewAuthedRequest(req *http.Request) *http.Request {
 }
 
 func TestCreateTodoHandler_Success(t *testing.T) {
-	han, _ := Setup()
+	han, _ := TodoHandlerTestSetup()
 
 	jsonStr := `{"task":"test"}`
 
@@ -76,7 +76,7 @@ func TestCreateTodoHandler_Success(t *testing.T) {
 }
 
 func TestCreateTodoHandler_EmptyTask(t *testing.T) {
-	han, _ := Setup()
+	han, _ := TodoHandlerTestSetup()
 
 	jsonStr := `{"task":""}`
 
@@ -101,7 +101,7 @@ func TestCreateTodoHandler_EmptyTask(t *testing.T) {
 }
 
 func TestGetTodosHandler_Success(t *testing.T) {
-	han, ser := Setup()
+	han, ser := TodoHandlerTestSetup()
 
 	_, err1 := ser.CreateTodo("test1", testUserID)
 	_, err2 := ser.CreateTodo("test2", testUserID)
@@ -185,14 +185,14 @@ func TestGetTodosHandler_Success(t *testing.T) {
 // }
 
 func TestDeleteTodoHandler_Success(t *testing.T) {
-	han, ser := Setup()
+	han, ser := TodoHandlerTestSetup()
 
 	todo, err := ser.CreateTodo("test", testUserID)
 	if err != nil {
 		t.Fatalf("todo作成に失敗")
 	}
 
-	id := strconv.Itoa(todo.TodoID)
+	id := strconv.Itoa(todo.ID)
 
 	req := httptest.NewRequest(
 		http.MethodDelete,
@@ -216,7 +216,7 @@ func TestDeleteTodoHandler_Success(t *testing.T) {
 }
 
 func TestDeleteTodoHandler_NotFound(t *testing.T) {
-	han, _ := Setup()
+	han, _ := TodoHandlerTestSetup()
 
 	req := httptest.NewRequest(
 		http.MethodDelete,

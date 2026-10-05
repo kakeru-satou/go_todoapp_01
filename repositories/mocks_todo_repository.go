@@ -1,4 +1,4 @@
-package services
+package repositories
 
 import "go-learning/todoApp/models"
 

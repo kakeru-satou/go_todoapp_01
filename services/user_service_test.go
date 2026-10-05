@@ -1,11 +1,12 @@
 package services
 
 import (
+	"go-learning/todoApp/repositories"
 	"testing"
 )
 
 func UserSetup() *UserService {
-	rep := NewFakeUserRepository()
+	rep := repositories.NewFakeUserRepository()
 	ser := NewUserService(rep, rep)
 
 	return ser
@@ -29,13 +30,13 @@ func TestTableSignup(t *testing.T) {
 			password := "test"
 
 			if tt.isCreateSameEmail {
-				_, _, err := ser.Signup(userName, tt.email, password)
+				_, err := ser.Signup(userName, tt.email, password)
 				if err != nil {
 					t.Fatalf("エラー:%v", err)
 				}
 			}
 
-			_, _, err := ser.Signup(userName, tt.email, password)
+			_, err := ser.Signup(userName, tt.email, password)
 			if (err != nil) != tt.isErr {
 				t.Errorf(
 					"%s: 想定=%v, 実際=%v",
@@ -67,7 +68,7 @@ func TestTableSignin(t *testing.T) {
 			ser := UserSetup()
 
 			userName := "test"
-			_, _, err := ser.Signup(userName, tt.createEmail, tt.createPassword)
+			_, err := ser.Signup(userName, tt.createEmail, tt.createPassword)
 			if err != nil {
 				t.Fatalf("エラー:%v", err)
 			}
@@ -102,7 +103,12 @@ func TestTableGetUserProfile(t *testing.T) {
 			id := 9999999
 
 			if tt.isCreate {
-				user, _, err := ser.Signup("test", email, "test")
+				_, err := ser.Signup("test", email, "test")
+				if err != nil {
+					t.Fatalf("エラー:%v", err)
+				}
+
+				user, err := ser.userFinder.GetByEmail(email)
 				if err != nil {
 					t.Fatalf("エラー:%v", err)
 				}
