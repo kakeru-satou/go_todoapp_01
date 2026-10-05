@@ -23,5 +23,3 @@ __debug_bin*
 
 # textbooks
 textbooks/
-# 補足メモは追跡する
-!補足メモ/*.md
