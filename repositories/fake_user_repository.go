@@ -20,7 +20,7 @@ func NewFakeUserRepository() *FakeUserRepository {
 func (f *FakeUserRepository) Create(user models.User) (models.User, error) {
 	for _, foundUser := range f.users {
 		if foundUser.Email == user.Email {
-			return user, errors.New("invalid email")
+			return user, errors.New("email is duplicated")
 		}
 	}
 

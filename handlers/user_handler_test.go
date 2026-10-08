@@ -46,7 +46,7 @@ func TestTableUserHandlerSignup(t *testing.T) {
 		isCreateSameEmail bool
 	}{
 		{"HandlerSignup_Success", "test@test.com", http.StatusCreated, false},
-		{"HandlerSignup_SameEmail", "test@test.com", http.StatusBadRequest, true},
+		{"HandlerSignup_SameEmail", "test@test.com", http.StatusConflict, true},
 	}
 
 	for _, tt := range tests {
