@@ -47,5 +47,7 @@ func main() {
 	appMux.Handle("/api/users/me", protectedUser)
 	appMux.Handle("/", http.FileServer(http.Dir("static")))
 
-	http.ListenAndServe(":8080", appMux)
+	corMux := middleware.Cors(appMux)
+
+	http.ListenAndServe(":8080", corMux)
 }

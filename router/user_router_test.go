@@ -62,7 +62,7 @@ func TestTableUserSignup(t *testing.T) {
 		isSuccess         bool
 	}{
 		{"RouterSignup_Success", "test@test.com", http.MethodPost, "/api/auth/signup", http.StatusCreated, false, true},
-		{"RouterSignup_SameEmail", "test@test.com", http.MethodPost, "/api/auth/signup", http.StatusBadRequest, true, false},
+		{"RouterSignup_SameEmail", "test@test.com", http.MethodPost, "/api/auth/signup", http.StatusConflict, true, false},
 	}
 
 	for _, tt := range tests {

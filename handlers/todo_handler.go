@@ -51,6 +51,12 @@ func writeJSON(w http.ResponseWriter, status int, v any) error {
 	return json.NewEncoder(w).Encode(v)
 }
 
+func writeErrMessage(w http.ResponseWriter, status int, errMessage string) {
+	message := models.ErrorMessageResponse{Message: errMessage}
+
+	writeJSON(w, status, message)
+}
+
 func IndexHandler(w http.ResponseWriter, r *http.Request) {
 	tmpl := template.Must(template.ParseFiles("static/index.html"))
 	tmpl.Execute(w, nil)

@@ -1,8 +1,11 @@
 package repositories
 
 import (
+	"errors"
 	"go-learning/todoApp/db"
 	"go-learning/todoApp/models"
+
+	"gorm.io/gorm"
 )
 
 type UserCreator interface {
@@ -18,6 +21,10 @@ type UserRepository struct{}
 
 func (r UserRepository) Create(user models.User) (models.User, error) {
 	result := db.DB.Create(&user)
+
+	if errors.Is(result.Error, gorm.ErrDuplicatedKey) {
+		return user, models.ErrEmailDuplicate
+	}
 
 	return user, result.Error
 }

@@ -1,6 +1,9 @@
 package models
 
-import "time"
+import (
+	"errors"
+	"time"
+)
 
 type User struct {
 	ID        int       `gorm:"primaryKey" json:"id"`
@@ -31,3 +34,5 @@ type SigninResponse struct {
 	Message string `json:"message"`
 	Token   string `json:"token"`
 }
+
+var ErrEmailDuplicate = errors.New("email is duplicated")

@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"go-learning/todoApp/auth"
 	"go-learning/todoApp/middleware"
 	"go-learning/todoApp/models"
@@ -39,7 +40,11 @@ func (h *UserHandler) SignupHandler(w http.ResponseWriter, r *http.Request) {
 
 	token, err := h.userCreator.Signup(req.Name, req.Email, req.Password)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		if errors.Is(err, models.ErrEmailDuplicate) {
+			writeErrMessage(w, http.StatusConflict, "すでに登録されているメールアドレスです")
+			return
+		}
+		writeErrMessage(w, http.StatusInternalServerError, "登録に失敗しました")
 		return
 	}
 
@@ -64,7 +69,7 @@ func (h *UserHandler) SigninHandler(w http.ResponseWriter, r *http.Request) {
 
 	token, err := h.userFinder.Signin(req.Email, req.Password)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusUnauthorized)
+		writeErrMessage(w, http.StatusUnauthorized, "メールアドレス、またはパスワードが違います")
 		return
 	}
 
