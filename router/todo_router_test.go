@@ -268,7 +268,7 @@ func TestRouterMethodNotAllowed_Success(t *testing.T) {
 		)
 	}
 
-	expected := "method not allowed\n"
+	expected := "{\"message\":\"method not allowed\"}\n"
 
 	if w.Body.String() != expected {
 		t.Errorf(
@@ -306,7 +306,7 @@ func TestRouterPost_EmptyTask(t *testing.T) {
 		)
 	}
 
-	expected := "task is required\n"
+	expected := "{\"message\":\"タスクが空です\"}\n"
 
 	if w.Body.String() != expected {
 		t.Errorf(
@@ -330,7 +330,7 @@ func TestRouterPatch_NotFound(t *testing.T) {
 		)
 	}
 
-	expected := "todo not found\n"
+	expected := "{\"message\":\"todo not found\"}\n"
 
 	if w.Body.String() != expected {
 		t.Errorf(
@@ -362,7 +362,7 @@ func TestRouterPatch_EmptyTask(t *testing.T) {
 		)
 	}
 
-	expected := "task is required\n"
+	expected := "{\"message\":\"タスクが空です\"}\n"
 
 	if w.Body.String() != expected {
 		t.Errorf(
@@ -386,7 +386,7 @@ func TestRouterDelete_NotFound(t *testing.T) {
 		)
 	}
 
-	expected := "delete failed\n"
+	expected := "{\"message\":\"削除に失敗しました\"}\n"
 
 	if w.Body.String() != expected {
 		t.Errorf(

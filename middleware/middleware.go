@@ -3,6 +3,7 @@ package middleware
 import (
 	"context"
 	"go-learning/todoApp/auth"
+	"go-learning/todoApp/response"
 	"net/http"
 	"strings"
 )
@@ -18,7 +19,7 @@ func Middleware(next http.Handler) http.Handler {
 
 		claims, err := auth.VerifyAccessToken(token)
 		if err != nil {
-			http.Error(w, "unauthorized", http.StatusUnauthorized)
+			response.WriteErrMessage(w, http.StatusUnauthorized, "unauthorized")
 			return
 		}
 
