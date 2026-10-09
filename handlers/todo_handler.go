@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"html/template"
+	"log"
 	"net/http"
 	"strings"
 
@@ -83,6 +84,7 @@ func (h *TodoHandler) CreateTodoHandler(w http.ResponseWriter, r *http.Request) 
 			response.WriteErrMessage(w, http.StatusBadRequest, "タスクが空です")
 			return
 		}
+		log.Println(err)
 		response.WriteErrMessage(w, http.StatusInternalServerError, "タスクの作成に失敗しました")
 		return
 	}

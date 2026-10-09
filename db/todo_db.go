@@ -20,5 +20,8 @@ func Init() {
 		panic(err)
 	}
 
-	DB.AutoMigrate(&models.Todo{}, &models.User{})
+	err = DB.AutoMigrate(&models.Todo{}, &models.User{})
+	if err != nil {
+		panic(err)
+	}
 }
