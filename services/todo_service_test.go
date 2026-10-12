@@ -52,6 +52,37 @@ func TestCreateTodo_Success(t *testing.T) {
 	}
 }
 
+func TestGetTodo_Success(t *testing.T) {
+	ser := TodoSetup()
+	task := "test"
+
+	todo, err := ser.CreateTodo(task, testUserID)
+
+	if err != nil {
+		t.Fatalf("エラー: %v", err)
+	}
+
+	foundTodo, err := ser.GetTodo(strconv.Itoa(todo.ID), testUserID)
+
+	if err != nil {
+		t.Errorf("エラー: %v", err)
+	}
+
+	if foundTodo.Task != todo.Task {
+		t.Errorf("想定タスク: %v, 取得タスク: %v", todo.Task, foundTodo.Task)
+	}
+}
+
+func TestGetTodo_UnknownID(t *testing.T) {
+	ser := TodoSetup()
+
+	_, err := ser.GetTodo("9999999", testUserID)
+
+	if err == nil {
+		t.Errorf("エラーがでていない")
+	}
+}
+
 // ToggleTodoはUpdateTodo(PATCH化)に統合したため使用停止。学習履歴として残置。
 // func TestToggleTodo_UnknownID(t *testing.T) {
 //

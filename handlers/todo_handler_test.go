@@ -23,13 +23,16 @@ func TodoHandlerTestSetup() (*TodoHandler, *services.TodoService) {
 	db.Init()
 	rep := repositories.TodoRepository{}
 	ser := services.NewTodoService(rep, rep, rep, rep, rep)
-	han := NewTodoHandler(ser, ser, ser, ser)
+	han := NewTodoHandler(ser, ser, ser, ser, ser)
 
 	return han, ser
 }
 
-func NewAuthedRequest(req *http.Request) *http.Request {
+func NewAuthedRequest(req *http.Request, otherUserID ...int) *http.Request {
 	ctx := context.WithValue(req.Context(), middleware.UserContextKey, auth.AccessTokenClaims{UserID: testUserID})
+	if len(otherUserID) > 0 {
+		ctx = context.WithValue(req.Context(), middleware.UserContextKey, auth.AccessTokenClaims{UserID: otherUserID[0]})
+	}
 	req = req.WithContext(ctx)
 
 	return req
@@ -125,6 +128,92 @@ func TestGetTodosHandler_Success(t *testing.T) {
 		t.Errorf(
 			"想定ステータス: %d , 取得したステータス %d",
 			http.StatusOK,
+			w.Code,
+		)
+	}
+}
+
+func TestGetTodoHandler_Success(t *testing.T) {
+	han, ser := TodoHandlerTestSetup()
+
+	todo, err := ser.CreateTodo("test", testUserID)
+	if err != nil {
+		t.Fatalf("todo作成に失敗")
+	}
+
+	id := strconv.Itoa(todo.ID)
+
+	req := httptest.NewRequest(
+		http.MethodGet,
+		"/api/todoList/"+id,
+		nil,
+	)
+
+	w := httptest.NewRecorder()
+
+	req = NewAuthedRequest(req)
+
+	han.GetTodoHandler(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf(
+			"想定ステータス: %d , 取得したステータス %d",
+			http.StatusOK,
+			w.Code,
+		)
+	}
+}
+
+func TestGetTodoHandler_NotFound(t *testing.T) {
+	han, _ := TodoHandlerTestSetup()
+
+	req := httptest.NewRequest(
+		http.MethodGet,
+		"/api/todoList/"+"999999999",
+		nil,
+	)
+
+	w := httptest.NewRecorder()
+
+	req = NewAuthedRequest(req)
+
+	han.GetTodoHandler(w, req)
+
+	if w.Code != http.StatusNotFound {
+		t.Errorf(
+			"想定ステータス: %d , 取得したステータス %d",
+			http.StatusNotFound,
+			w.Code,
+		)
+	}
+}
+
+func TestGetTodoHandler_OtherUserID(t *testing.T) {
+	han, ser := TodoHandlerTestSetup()
+
+	todo, err := ser.CreateTodo("test", testUserID)
+	if err != nil {
+		t.Fatalf("todo作成に失敗")
+	}
+
+	id := strconv.Itoa(todo.ID)
+
+	req := httptest.NewRequest(
+		http.MethodGet,
+		"/api/todoList/"+id,
+		nil,
+	)
+
+	w := httptest.NewRecorder()
+	otherUserID := 9999
+	req = NewAuthedRequest(req, otherUserID)
+
+	han.GetTodoHandler(w, req)
+
+	if w.Code != http.StatusNotFound {
+		t.Errorf(
+			"想定ステータス: %d , 取得したステータス %d",
+			http.StatusNotFound,
 			w.Code,
 		)
 	}

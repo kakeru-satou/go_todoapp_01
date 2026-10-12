@@ -24,7 +24,7 @@ func TodoRouteTestSetup() (http.Handler, *services.TodoService) {
 
 	rep := repositories.TodoRepository{}
 	ser := services.NewTodoService(rep, rep, rep, rep, rep)
-	han := handlers.NewTodoHandler(ser, ser, ser, ser)
+	han := handlers.NewTodoHandler(ser, ser, ser, ser, ser)
 	mux := SetupRoutes(han)
 
 	return middleware.Middleware(mux), ser
@@ -55,7 +55,7 @@ func SendTodoRequest(t *testing.T, mux http.Handler, method string, path string,
 	return w
 }
 
-func TestRouterGet_Success(t *testing.T) {
+func TestRouterGetTodos_Success(t *testing.T) {
 	mux, ser := TodoRouteTestSetup()
 
 	_, err := ser.CreateTodo("test", testUserID)
@@ -91,6 +91,58 @@ func TestRouterGet_Success(t *testing.T) {
 			"想定タスク: %s, 取得タスク: %s",
 			"test",
 			response[0].Task,
+		)
+	}
+}
+
+func TestRouterGetTodo_Success(t *testing.T) {
+	mux, ser := TodoRouteTestSetup()
+
+	todo, err := ser.CreateTodo("test", testUserID)
+
+	if err != nil {
+		t.Fatalf("エラー: %v", err)
+	}
+
+	id := strconv.Itoa(todo.ID)
+
+	w := SendTodoRequest(t, mux, http.MethodGet, "/api/todoList/"+id)
+
+	if w.Code != http.StatusOK {
+		t.Errorf(
+			"想定ステータス: %d , 取得ステータス: %d",
+			http.StatusOK,
+			w.Code,
+		)
+	}
+
+	var response models.Todo
+
+	err = json.Unmarshal(w.Body.Bytes(), &response)
+
+	if err != nil {
+		t.Fatalf("response body: %v", err)
+	}
+
+	if response.Task != "test" {
+		t.Errorf(
+			"想定タスク: %s, 取得タスク: %s",
+			"test",
+			response.Task,
+		)
+	}
+}
+
+func TestRouterGetTodo_NotFound(t *testing.T) {
+	mux, _ := TodoRouteTestSetup()
+
+	w := SendTodoRequest(t, mux, http.MethodGet, "/api/todoList/"+"999999")
+
+	if w.Code != http.StatusNotFound {
+		t.Errorf(
+			"想定ステータス: %d , 取得ステータス: %d",
+			http.StatusNotFound,
+			w.Code,
 		)
 	}
 }

@@ -17,6 +17,9 @@ import (
 type Lister interface {
 	GetTodos(userID int) ([]models.Todo, error)
 }
+type Finder interface {
+	GetTodo(todoID string, userID int) (models.Todo, error)
+}
 type Creator interface {
 	CreateTodo(task string, userID int) (models.Todo, error)
 }
@@ -29,14 +32,16 @@ type Deleter interface {
 
 type TodoHandler struct {
 	lister  Lister
+	finder  Finder
 	creator Creator
 	updater Updater
 	deleter Deleter
 }
 
-func NewTodoHandler(lister Lister, creator Creator, updater Updater, deleter Deleter) *TodoHandler {
+func NewTodoHandler(lister Lister, finder Finder, creator Creator, updater Updater, deleter Deleter) *TodoHandler {
 	return &TodoHandler{
 		lister:  lister,
+		finder:  finder,
 		creator: creator,
 		updater: updater,
 		deleter: deleter,
@@ -62,6 +67,23 @@ func (h *TodoHandler) GetTodosHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = response.WriteJSON(w, http.StatusOK, todos)
+
+	if err != nil {
+		response.WriteErrMessage(w, http.StatusInternalServerError, "failed to encode response")
+	}
+}
+
+func (h *TodoHandler) GetTodoHandler(w http.ResponseWriter, r *http.Request) {
+	claims := r.Context().Value(middleware.UserContextKey).(auth.AccessTokenClaims)
+	todoID := getIDFromPath(r.URL.Path)
+	todo, err := h.finder.GetTodo(todoID, claims.UserID)
+
+	if err != nil {
+		response.WriteErrMessage(w, http.StatusNotFound, "failed to get todo")
+		return
+	}
+
+	err = response.WriteJSON(w, http.StatusOK, todo)
 
 	if err != nil {
 		response.WriteErrMessage(w, http.StatusInternalServerError, "failed to encode response")

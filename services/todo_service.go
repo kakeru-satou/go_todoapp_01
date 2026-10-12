@@ -27,6 +27,10 @@ func (s *TodoService) GetTodos(userID int) ([]models.Todo, error) {
 	return s.allFinder.FindAllTodos(userID)
 }
 
+func (s *TodoService) GetTodo(todoID string, userID int) (models.Todo, error) {
+	return s.finder.FindByID(todoID, userID)
+}
+
 func (s *TodoService) CreateTodo(task string, userID int) (models.Todo, error) {
 	if task == "" {
 		return models.Todo{}, models.ErrTaskRequired
