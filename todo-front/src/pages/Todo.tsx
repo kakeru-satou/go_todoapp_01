@@ -51,6 +51,31 @@ export function Todo() {
     navigate("/login");
   };
 
+  const handleDelete = async (id: number) => {
+    if (!window.confirm("本当に削除しますか？")) return;
+
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        navigate("/login");
+        return;
+      }
+      await axios.delete(`http://localhost:8080/api/todoList/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      setTodos((prev) => prev.filter((todo) => todo.id !== id));
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        setError(err.response?.data?.message || "Todoの削除に失敗しました");
+      } else {
+        setError("予期せぬエラーが発生しました");
+      }
+    }
+  };
+
   return (
     <div style={{ padding: "20px", maxWidth: "600px", margin: "0 auto" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -87,9 +112,43 @@ export function Todo() {
               backgroundColor: "white",
             }}
           >
-            <input type="checkbox" checked={todo.isDone} readOnly />
+            <div style={{ display: "flex", gap: "10px", justifyContent: "flex-start" }}>
+              <input type="checkbox" checked={todo.isDone} readOnly />
+            </div>
             <h3 style={{ margin: "0 0 10px 0" }}>{todo.task}</h3>
             {/* 第3章でここに編集ボタンと削除ボタンを追加します */}
+            <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
+              {/* ✏️ 編集画面へのリンク（3-2で使用します） */}
+              <Link to={`/todos/${todo.id}/edit`}>
+                <button
+                  style={{
+                    padding: "5px 15px",
+                    backgroundColor: "#4CAF50",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                  }}
+                >
+                  編集
+                </button>
+              </Link>
+
+              {/* 🗑️ 削除ボタンを追加 */}
+              <button
+                onClick={() => handleDelete(todo.id)}
+                style={{
+                  padding: "5px 15px",
+                  backgroundColor: "#f44336",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "4px",
+                  cursor: "pointer",
+                }}
+              >
+                削除
+              </button>
+            </div>
           </li>
         ))}
       </ul>
