@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
+import { useAuth } from "../hooks/useAuth";
 
 export function Signup() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const { login } = useAuth();
 
   const navigate = useNavigate();
 
@@ -21,7 +23,9 @@ export function Signup() {
         password,
       });
 
-      localStorage.setItem("token", response.data.token);
+      // localStorage.setItem("token", response.data.token);
+      // Cookies.set("token", response.data.token, { expires: 7 });
+      login(response.data.token, 1);
       alert("登録成功！Todo画面へ移動します。");
 
       navigate("/todos");

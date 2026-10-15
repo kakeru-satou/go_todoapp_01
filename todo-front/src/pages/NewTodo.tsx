@@ -1,41 +1,37 @@
-// src/pages/NewTodo.tsx
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import { useTodos } from "../hooks/useTodos";
+import { useAuth } from "../hooks/useAuth";
 
 export function NewTodo() {
   const navigate = useNavigate();
   const [task, setTask] = useState("");
-  const [error, setError] = useState("");
+  const { addTodo, error } = useTodos();
+  const { isAuthenticated } = useAuth();
 
-  // フォームが送信（Submit）された時の処理
   const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
-    // ⚠️ エラーの先回り：画面リロードを防ぐための1行
     e.preventDefault();
-    setError("");
 
-    const token = localStorage.getItem("token");
-    if (!token) {
-      navigate("/login");
-      return;
-    }
+    if (!isAuthenticated) return navigate("/login");
 
-    try {
-      await axios.post(
-        "http://localhost:8080/api/todoList",
-        { task },
-        { headers: { Authorization: `Bearer ${token}` } },
-      );
+    // try {
+    //   await axios.post(
+    //     "http://localhost:8080/api/todoList",
+    //     { task },
+    //     { headers: { Authorization: `Bearer ${token}` } },
+    //   );
 
-      // 成功したら一覧画面に戻る
-      navigate("/todos");
-    } catch (err: unknown) {
-      if (axios.isAxiosError(err)) {
-        setError(err.response?.data?.message || "Todoの追加に失敗しました");
-      } else {
-        setError("予期せぬエラーが発生しました");
-      }
-    }
+    //   navigate("/todos");
+    // } catch (err: unknown) {
+    //   if (axios.isAxiosError(err)) {
+    //     setError(err.response?.data?.message || "Todoの追加に失敗しました");
+    //   } else {
+    //     setError("予期せぬエラーが発生しました");
+    //   }
+    // }
+
+    await addTodo(task);
+    navigate("/todos");
   };
 
   return (

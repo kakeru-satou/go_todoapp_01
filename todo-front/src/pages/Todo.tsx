@@ -1,80 +1,81 @@
-// src/pages/Todo.tsx
 import { useNavigate, Link } from "react-router-dom";
-import { useEffect, useState, useCallback } from "react";
-import axios from "axios";
-
-type TodoType = {
-  id: number;
-  task: string;
-  isDone: boolean;
-};
+import { useEffect } from "react";
+import { useAuth } from "../hooks/useAuth";
+import { useTodos } from "../hooks/useTodos";
 
 export function Todo() {
   const navigate = useNavigate();
-  const [todos, setTodos] = useState<TodoType[]>([]);
-  const [error, setError] = useState<string>("");
+  // const [todos, setTodos] = useState<TodoType[]>([]);
+  // const [error, setError] = useState<string>("");
+  const { logout, isAuthenticated } = useAuth();
+  const { todos, error, fetchTodos, deleteTodo } = useTodos();
 
-  const fetchTodos = useCallback(async () => {
-    try {
-      const token = localStorage.getItem("token");
+  // const fetchTodos = useCallback(async () => {
+  //   try {
+  //     const token = Cookies.get("token");
 
-      if (!token) {
-        navigate("/login");
-        return;
-      }
+  //     if (!token) {
+  //       navigate("/login");
+  //       return;
+  //     }
 
-      const response = await axios.get("http://localhost:8080/api/todoList", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+  //     const response = await axios.get("http://localhost:8080/api/todoList", {
+  //       headers: {
+  //         Authorization: `Bearer ${token}`,
+  //       },
+  //     });
 
-      setTodos(response.data);
-    } catch (err: unknown) {
-      if (axios.isAxiosError(err)) {
-        setError(err.response?.data?.message || "Todoの取得に失敗しました");
-      } else {
-        setError("予期せぬエラーが発生しました");
-      }
-    }
-  }, [navigate]);
+  //     setTodos(response.data);
+  //   } catch (err: unknown) {
+  //     if (axios.isAxiosError(err)) {
+  //       setError(err.response?.data?.message || "Todoの取得に失敗しました");
+  //     } else {
+  //       setError("予期せぬエラーが発生しました");
+  //     }
+  //   }
+  // }, [navigate]);
 
   useEffect(() => {
-    // ⚠️ エラーの先回り：最新のLintルールの誤検知を防ぐコメント
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchTodos();
-  }, [fetchTodos]);
+    if (isAuthenticated) {
+      fetchTodos();
+    } else {
+      navigate("/login");
+      return;
+    }
+  }, [isAuthenticated, fetchTodos, navigate]);
 
   // ログアウト処理
   const handleLogout = () => {
-    localStorage.removeItem("token");
+    // localStorage.removeItem("token");
+    // Cookies.remove("token");
+    logout();
     navigate("/login");
   };
 
-  const handleDelete = async (id: number) => {
-    if (!window.confirm("本当に削除しますか？")) return;
+  // const handleDelete = async (id: number) => {
+  //   if (!window.confirm("本当に削除しますか？")) return;
 
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        navigate("/login");
-        return;
-      }
-      await axios.delete(`http://localhost:8080/api/todoList/${id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+  //   try {
+  //     const token = Cookies.get("token");
+  //     if (!token) {
+  //       navigate("/login");
+  //       return;
+  //     }
+  //     await axios.delete(`http://localhost:8080/api/todoList/${id}`, {
+  //       headers: {
+  //         Authorization: `Bearer ${token}`,
+  //       },
+  //     });
 
-      setTodos((prev) => prev.filter((todo) => todo.id !== id));
-    } catch (err: unknown) {
-      if (axios.isAxiosError(err)) {
-        setError(err.response?.data?.message || "Todoの削除に失敗しました");
-      } else {
-        setError("予期せぬエラーが発生しました");
-      }
-    }
-  };
+  //     setTodos((prev) => prev.filter((todo) => todo.id !== id));
+  //   } catch (err: unknown) {
+  //     if (axios.isAxiosError(err)) {
+  //       setError(err.response?.data?.message || "Todoの削除に失敗しました");
+  //     } else {
+  //       setError("予期せぬエラーが発生しました");
+  //     }
+  //   }
+  // };
 
   return (
     <div style={{ padding: "20px", maxWidth: "600px", margin: "0 auto" }}>
@@ -116,9 +117,7 @@ export function Todo() {
               <input type="checkbox" checked={todo.isDone} readOnly />
             </div>
             <h3 style={{ margin: "0 0 10px 0" }}>{todo.task}</h3>
-            {/* 第3章でここに編集ボタンと削除ボタンを追加します */}
             <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
-              {/* ✏️ 編集画面へのリンク（3-2で使用します） */}
               <Link to={`/todos/${todo.id}/edit`}>
                 <button
                   style={{
@@ -134,9 +133,8 @@ export function Todo() {
                 </button>
               </Link>
 
-              {/* 🗑️ 削除ボタンを追加 */}
               <button
-                onClick={() => handleDelete(todo.id)}
+                onClick={() => deleteTodo(todo.id)}
                 style={{
                   padding: "5px 15px",
                   backgroundColor: "#f44336",

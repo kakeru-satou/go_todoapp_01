@@ -1,60 +1,57 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import axios from "axios";
+import { useAuth } from "../hooks/useAuth";
+import { useTodos } from "../hooks/useTodos";
 
 export function EditTodo() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
 
   const [task, setTask] = useState("");
-  const [error, setError] = useState("");
+  const { isAuthenticated } = useAuth();
+  const { error, fetchTodo, updateTodo } = useTodos();
 
-  const fetchSingleTodo = useCallback(async () => {
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) return navigate("/login");
+  // const fetchSingleTodo = useCallback(async () => {
+  //   try {
+  //     if (!isAuthenticated) return navigate("/login");
 
-      const response = await axios.get(`http://localhost:8080/api/todoList/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+  //     const response = fetchTodo(id);
 
-      setTask(response.data.task);
-    } catch (err: unknown) {
-      if (axios.isAxiosError(err)) {
-        setError(err.response?.data?.message || "データの取得に失敗しました");
-      } else {
-        setError("予期せぬエラーが発生しました");
-      }
-    }
-  }, [id, navigate]);
+  //     setTask(response.data.task);
+  //   } catch (err: unknown) {
+  //     if (axios.isAxiosError(err)) {
+  //       setError(err.response?.data?.message || "データの取得に失敗しました");
+  //     } else {
+  //       setError("予期せぬエラーが発生しました");
+  //     }
+  //   }
+  // }, [id, navigate]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+    const fetchSingleTodo = async () => {
+      if (!isAuthenticated) return navigate("/login");
+      if (id == null) return;
+
+      const response = await fetchTodo(id);
+      if (response == null) return;
+      setTask(response.task);
+    };
+
     fetchSingleTodo();
-  }, [fetchSingleTodo]);
+  }, [isAuthenticated, id, fetchTodo, setTask, navigate]);
 
   const handleUpdate = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError("");
+    // setError("");
 
-    const token = localStorage.getItem("token");
-    if (!token) return navigate("/login");
+    if (!isAuthenticated) return navigate("/login");
 
-    try {
-      await axios.patch(
-        `http://localhost:8080/api/todoList/${id}`,
-        { task },
-        { headers: { Authorization: `Bearer ${token}` } },
-      );
-      alert("更新しました！");
-      navigate("/todos");
-    } catch (err: unknown) {
-      if (axios.isAxiosError(err)) {
-        setError(err.response?.data?.message || "Todoの更新に失敗しました");
-      } else {
-        setError("予期せぬエラーが発生しました");
-      }
+    if (id == null) {
+      return;
     }
+    await updateTodo(Number(id), { task });
+    alert("更新しました！");
+    navigate("/todos");
   };
 
   return (
