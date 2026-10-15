@@ -1,10 +1,11 @@
 import { createContext, useState } from "react";
 import type { ReactNode } from "react";
 import Cookies from "js-cookie";
+import { jwtDecode } from "jwt-decode";
 
 export type AuthContextType = {
   isAuthenticated: boolean;
-  login: (token: string, days: number) => void;
+  login: (token: string) => void;
   logout: () => void;
 };
 
@@ -14,8 +15,10 @@ export const AuthContext = createContext<AuthContextType | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(!!Cookies.get("token"));
 
-  const login = (token: string, days: number) => {
-    Cookies.set("token", token, { expires: days });
+  const login = (token: string) => {
+    const decoded = jwtDecode(token);
+    const expiresAt = decoded.exp == null ? undefined : new Date(decoded.exp * 1000);
+    Cookies.set("token", token, { expires: expiresAt });
     setIsAuthenticated(true);
   };
 
