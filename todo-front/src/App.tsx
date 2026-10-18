@@ -1,9 +1,9 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Login } from "./pages/Login";
 import { Signup } from "./pages/Signup";
-import { Todo } from "./pages/Todo";
-import { NewTodo } from "./pages/NewTodo";
-import { EditTodo } from "./pages/EditTodo";
+import { TodoModal } from "./pages/Todo";
+// import { NewTodo } from "./pages/NewTodo";
+// import { EditTodo } from "./pages/EditTodo";
 
 export function App() {
   return (
@@ -12,9 +12,9 @@ export function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
-          <Route path="/todos" element={<Todo />} />
-          <Route path="/todos/new" element={<NewTodo />} />
-          <Route path="/todos/:id/edit" element={<EditTodo />} />
+          <Route path="/todos" element={<TodoModal />} />
+          {/* <Route path="/todos/new" element={<NewTodo />} />
+          <Route path="/todos/:id/edit" element={<EditTodo />} /> */}
 
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
