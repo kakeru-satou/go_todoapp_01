@@ -1,0 +1,47 @@
+/* src/components/Button.module.css */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  font-size: 0.9rem;
+}
+
+.primary {
+  background-color: var(--primary-color);
+  color: white;
+}
+.primary:hover {
+  background-color: var(--primary-hover);
+}
+
+.secondary {
+  background-color: var(--primary-color);
+  color: white;
+  padding: 8px 16px;
+}
+
+.light {
+  background-color: var(--light-gray);
+  color: var(--text-main);
+}
+
+.danger {
+  background-color: transparent;
+  color: var(--danger-color);
+  border: 1px solid rgba(211, 47, 47, 0.2);
+  padding: 8px 12px;
+}
+.danger:hover {
+  background-color: rgba(211, 47, 47, 0.05);
+}
+
+.fullWidth {
+  width: 100%;
+}
