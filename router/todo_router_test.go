@@ -24,7 +24,7 @@ func TodoRouteTestSetup() (http.Handler, *services.TodoService) {
 
 	rep := repositories.TodoRepository{}
 	ser := services.NewTodoService(rep, rep, rep, rep, rep)
-	han := handlers.NewTodoHandler(ser, ser, ser, ser)
+	han := handlers.NewTodoHandler(ser, ser, ser, ser, ser)
 	mux := SetupRoutes(han)
 
 	return middleware.Middleware(mux), ser
@@ -55,7 +55,7 @@ func SendTodoRequest(t *testing.T, mux http.Handler, method string, path string,
 	return w
 }
 
-func TestRouterGet_Success(t *testing.T) {
+func TestRouterGetTodos_Success(t *testing.T) {
 	mux, ser := TodoRouteTestSetup()
 
 	_, err := ser.CreateTodo("test", testUserID)
@@ -91,6 +91,58 @@ func TestRouterGet_Success(t *testing.T) {
 			"想定タスク: %s, 取得タスク: %s",
 			"test",
 			response[0].Task,
+		)
+	}
+}
+
+func TestRouterGetTodo_Success(t *testing.T) {
+	mux, ser := TodoRouteTestSetup()
+
+	todo, err := ser.CreateTodo("test", testUserID)
+
+	if err != nil {
+		t.Fatalf("エラー: %v", err)
+	}
+
+	id := strconv.Itoa(todo.ID)
+
+	w := SendTodoRequest(t, mux, http.MethodGet, "/api/todoList/"+id)
+
+	if w.Code != http.StatusOK {
+		t.Errorf(
+			"想定ステータス: %d , 取得ステータス: %d",
+			http.StatusOK,
+			w.Code,
+		)
+	}
+
+	var response models.Todo
+
+	err = json.Unmarshal(w.Body.Bytes(), &response)
+
+	if err != nil {
+		t.Fatalf("response body: %v", err)
+	}
+
+	if response.Task != "test" {
+		t.Errorf(
+			"想定タスク: %s, 取得タスク: %s",
+			"test",
+			response.Task,
+		)
+	}
+}
+
+func TestRouterGetTodo_NotFound(t *testing.T) {
+	mux, _ := TodoRouteTestSetup()
+
+	w := SendTodoRequest(t, mux, http.MethodGet, "/api/todoList/"+"999999")
+
+	if w.Code != http.StatusNotFound {
+		t.Errorf(
+			"想定ステータス: %d , 取得ステータス: %d",
+			http.StatusNotFound,
+			w.Code,
 		)
 	}
 }
@@ -268,7 +320,7 @@ func TestRouterMethodNotAllowed_Success(t *testing.T) {
 		)
 	}
 
-	expected := "method not allowed\n"
+	expected := "{\"message\":\"method not allowed\"}\n"
 
 	if w.Body.String() != expected {
 		t.Errorf(
@@ -306,7 +358,7 @@ func TestRouterPost_EmptyTask(t *testing.T) {
 		)
 	}
 
-	expected := "task is required\n"
+	expected := "{\"message\":\"タスクが空です\"}\n"
 
 	if w.Body.String() != expected {
 		t.Errorf(
@@ -330,7 +382,7 @@ func TestRouterPatch_NotFound(t *testing.T) {
 		)
 	}
 
-	expected := "todo not found\n"
+	expected := "{\"message\":\"todo not found\"}\n"
 
 	if w.Body.String() != expected {
 		t.Errorf(
@@ -362,7 +414,7 @@ func TestRouterPatch_EmptyTask(t *testing.T) {
 		)
 	}
 
-	expected := "task is required\n"
+	expected := "{\"message\":\"タスクが空です\"}\n"
 
 	if w.Body.String() != expected {
 		t.Errorf(
@@ -386,7 +438,7 @@ func TestRouterDelete_NotFound(t *testing.T) {
 		)
 	}
 
-	expected := "delete failed\n"
+	expected := "{\"message\":\"削除に失敗しました\"}\n"
 
 	if w.Body.String() != expected {
 		t.Errorf(

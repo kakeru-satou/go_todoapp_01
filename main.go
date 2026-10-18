@@ -14,7 +14,7 @@ import (
 func main() {
 	todoRep := repositories.TodoRepository{}
 	todoSer := services.NewTodoService(todoRep, todoRep, todoRep, todoRep, todoRep)
-	todoHan := handlers.NewTodoHandler(todoSer, todoSer, todoSer, todoSer)
+	todoHan := handlers.NewTodoHandler(todoSer, todoSer, todoSer, todoSer, todoSer)
 
 	userRep := repositories.UserRepository{}
 	userSer := services.NewUserService(userRep, userRep)

@@ -4,16 +4,21 @@ import (
 	"encoding/json"
 	"errors"
 	"html/template"
+	"log"
 	"net/http"
 	"strings"
 
 	"go-learning/todoApp/auth"
 	"go-learning/todoApp/middleware"
 	"go-learning/todoApp/models"
+	"go-learning/todoApp/response"
 )
 
 type Lister interface {
 	GetTodos(userID int) ([]models.Todo, error)
+}
+type Finder interface {
+	GetTodo(todoID string, userID int) (models.Todo, error)
 }
 type Creator interface {
 	CreateTodo(task string, userID int) (models.Todo, error)
@@ -27,14 +32,16 @@ type Deleter interface {
 
 type TodoHandler struct {
 	lister  Lister
+	finder  Finder
 	creator Creator
 	updater Updater
 	deleter Deleter
 }
 
-func NewTodoHandler(lister Lister, creator Creator, updater Updater, deleter Deleter) *TodoHandler {
+func NewTodoHandler(lister Lister, finder Finder, creator Creator, updater Updater, deleter Deleter) *TodoHandler {
 	return &TodoHandler{
 		lister:  lister,
+		finder:  finder,
 		creator: creator,
 		updater: updater,
 		deleter: deleter,
@@ -43,18 +50,6 @@ func NewTodoHandler(lister Lister, creator Creator, updater Updater, deleter Del
 
 func getIDFromPath(path string) string {
 	return strings.TrimPrefix(path, "/api/todoList/")
-}
-
-func writeJSON(w http.ResponseWriter, status int, v any) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(status)
-	return json.NewEncoder(w).Encode(v)
-}
-
-func writeErrMessage(w http.ResponseWriter, status int, errMessage string) {
-	message := models.ErrorMessageResponse{Message: errMessage}
-
-	writeJSON(w, status, message)
 }
 
 func IndexHandler(w http.ResponseWriter, r *http.Request) {
@@ -67,14 +62,31 @@ func (h *TodoHandler) GetTodosHandler(w http.ResponseWriter, r *http.Request) {
 	todos, err := h.lister.GetTodos(claims.UserID)
 
 	if err != nil {
-		http.Error(w, "failed to get todos", http.StatusNotFound)
+		response.WriteErrMessage(w, http.StatusNotFound, "failed to get todos")
 		return
 	}
 
-	err = writeJSON(w, http.StatusOK, todos)
+	err = response.WriteJSON(w, http.StatusOK, todos)
 
 	if err != nil {
-		http.Error(w, "failed to encode response", http.StatusInternalServerError)
+		response.WriteErrMessage(w, http.StatusInternalServerError, "failed to encode response")
+	}
+}
+
+func (h *TodoHandler) GetTodoHandler(w http.ResponseWriter, r *http.Request) {
+	claims := r.Context().Value(middleware.UserContextKey).(auth.AccessTokenClaims)
+	todoID := getIDFromPath(r.URL.Path)
+	todo, err := h.finder.GetTodo(todoID, claims.UserID)
+
+	if err != nil {
+		response.WriteErrMessage(w, http.StatusNotFound, "failed to get todo")
+		return
+	}
+
+	err = response.WriteJSON(w, http.StatusOK, todo)
+
+	if err != nil {
+		response.WriteErrMessage(w, http.StatusInternalServerError, "failed to encode response")
 	}
 }
 
@@ -83,21 +95,26 @@ func (h *TodoHandler) CreateTodoHandler(w http.ResponseWriter, r *http.Request) 
 	claims := r.Context().Value(middleware.UserContextKey).(auth.AccessTokenClaims)
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "invalid request", http.StatusBadRequest)
+		response.WriteErrMessage(w, http.StatusBadRequest, "invalid request")
 		return
 	}
 
 	todo, err := h.creator.CreateTodo(req.Task, claims.UserID)
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		if errors.Is(err, models.ErrTaskRequired) {
+			response.WriteErrMessage(w, http.StatusBadRequest, "タスクが空です")
+			return
+		}
+		log.Println(err)
+		response.WriteErrMessage(w, http.StatusInternalServerError, "タスクの作成に失敗しました")
 		return
 	}
 
-	err = writeJSON(w, http.StatusCreated, todo)
+	err = response.WriteJSON(w, http.StatusCreated, todo)
 
 	if err != nil {
-		http.Error(w, "failed to encode response", http.StatusInternalServerError)
+		response.WriteErrMessage(w, http.StatusInternalServerError, "failed to encode response")
 	}
 }
 
@@ -127,7 +144,7 @@ func (h *TodoHandler) PatchTodoHandler(w http.ResponseWriter, r *http.Request) {
 	claims := r.Context().Value(middleware.UserContextKey).(auth.AccessTokenClaims)
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "invalid request", http.StatusBadRequest)
+		response.WriteErrMessage(w, http.StatusBadRequest, "invalid request")
 		return
 	}
 
@@ -135,17 +152,17 @@ func (h *TodoHandler) PatchTodoHandler(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		if errors.Is(err, models.ErrTaskRequired) {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			response.WriteErrMessage(w, http.StatusBadRequest, "タスクが空です")
 			return
 		}
-		http.Error(w, "todo not found", http.StatusNotFound)
+		response.WriteErrMessage(w, http.StatusNotFound, "todo not found")
 		return
 	}
 
-	err = writeJSON(w, http.StatusOK, todo)
+	err = response.WriteJSON(w, http.StatusOK, todo)
 
 	if err != nil {
-		http.Error(w, "failed to encode response", http.StatusInternalServerError)
+		response.WriteErrMessage(w, http.StatusInternalServerError, "failed to encode response")
 	}
 }
 
@@ -156,7 +173,7 @@ func (h *TodoHandler) DeleteTodoHandler(w http.ResponseWriter, r *http.Request) 
 	err := h.deleter.DeleteTodo(todoID, claims.UserID)
 
 	if err != nil {
-		http.Error(w, "delete failed", http.StatusNotFound)
+		response.WriteErrMessage(w, http.StatusNotFound, "削除に失敗しました")
 		return
 	}
 

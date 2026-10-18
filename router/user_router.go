@@ -1,6 +1,9 @@
 package router
 
-import "net/http"
+import (
+	"go-learning/todoApp/response"
+	"net/http"
+)
 
 type UserHandler interface {
 	SignupHandler(w http.ResponseWriter, r *http.Request)
@@ -16,7 +19,7 @@ func SetupUserRoutes(h UserHandler) *http.ServeMux {
 		case http.MethodPost:
 			h.SignupHandler(w, r)
 		default:
-			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			response.WriteErrMessage(w, http.StatusMethodNotAllowed, "method not allowed")
 		}
 	})
 
@@ -25,7 +28,7 @@ func SetupUserRoutes(h UserHandler) *http.ServeMux {
 		case http.MethodPost:
 			h.SigninHandler(w, r)
 		default:
-			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			response.WriteErrMessage(w, http.StatusMethodNotAllowed, "method not allowed")
 		}
 	})
 
@@ -34,7 +37,7 @@ func SetupUserRoutes(h UserHandler) *http.ServeMux {
 		case http.MethodGet:
 			h.MeHandler(w, r)
 		default:
-			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			response.WriteErrMessage(w, http.StatusMethodNotAllowed, "method not allowed")
 		}
 	})
 

@@ -1,21 +1,21 @@
-// src/App.tsx
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Login } from "./pages/Login";
 import { Signup } from "./pages/Signup";
-import { Todo } from "./pages/Todo";
+import { TodoModal } from "./pages/Todo";
+// import { NewTodo } from "./pages/NewTodo";
+// import { EditTodo } from "./pages/EditTodo";
 
 export function App() {
   return (
-    // 🌟 BrowserRouter: この中でルーティングを使うよ！という宣言
     <BrowserRouter>
       <div style={{ padding: "20px", fontFamily: "sans-serif" }}>
-        {/* 🌟 Routes: URLとコンポーネントの組み合わせリスト */}
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
-          <Route path="/todos" element={<Todo />} />
+          <Route path="/todos" element={<TodoModal />} />
+          {/* <Route path="/todos/new" element={<NewTodo />} />
+          <Route path="/todos/:id/edit" element={<EditTodo />} /> */}
 
-          {/* 存在しないURLにアクセスされたら、自動で /login に飛ばす設定 */}
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </div>
