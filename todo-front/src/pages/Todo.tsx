@@ -1,6 +1,6 @@
 // src/pages/Todo.tsx
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom"; // 🌟 ログアウト後の画面移動用
+import { useState } from "react";
+import { useNavigate, Navigate } from "react-router-dom"; // 🌟 ログアウト後の画面移動用
 import { useAuth } from "../hooks/useAuth";
 import { useTodos, type TodoType } from "../hooks/useTodos";
 
@@ -11,21 +11,16 @@ import {
   FaArrowRightFromBracket,
   FaTrash,
   FaArrowLeft,
+  FaSpinner,
 } from "react-icons/fa6";
 import { Button } from "../components/Button";
 
 import styles from "./Todo.module.css";
 
 export function TodoModal() {
-  const { isAuthenticated, userName, logout } = useAuth();
+  const { userName, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
-  const { todos, error, fetchTodos, addTodo, deleteTodo, updateTodo } = useTodos();
-
-  // 🌟 4-5と同じ：トークンの破棄は Context、画面移動はこの画面の担当
-  const handleLogout = () => {
-    logout();
-    navigate("/login");
-  };
+  const { todos, isLoading, isError, addTodo, deleteTodo, updateTodo } = useTodos();
 
   // 🌟 モーダルの開閉状態を切り替えるためのState（最初はどちらも非表示の false）
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -34,21 +29,28 @@ export function TodoModal() {
   // 🌟 フォームへの入力内容を一時保存するState
   const [formTask, setFormTask] = useState("");
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      fetchTodos();
-    } else {
-      navigate("/login");
-      return;
-    }
-  }, [isAuthenticated, fetchTodos, navigate]);
+  // 🌟 4-5と同じ：トークンの破棄は Context、画面移動はこの画面の担当
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
 
   // 新規追加モーダルの「追加する」ボタンが押された時の処理
   const handleAddSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
-    await addTodo(formTask);
+    await addTodo({ task: formTask });
     setIsAddModalOpen(false); // 登録が終わったらモーダルをスッと閉じる
     setFormTask("");
+  };
+
+  const handleDelete = async (id: number) => {
+    if (window.confirm("本当に削除しますか？")) {
+      try {
+        await deleteTodo(id);
+      } catch (error) {
+        console.error(error);
+      }
+    }
   };
 
   // 編集モーダルの「更新する」ボタンが押された時の処理
@@ -56,7 +58,7 @@ export function TodoModal() {
     e.preventDefault();
     if (!editingTodo) return;
     const task = formTask;
-    await updateTodo(editingTodo.id, { task });
+    await updateTodo({ id: editingTodo.id, task });
     setEditingTodo(null); // 更新が終わったらモーダルを閉じる
   };
 
@@ -66,6 +68,35 @@ export function TodoModal() {
     setFormTask(todo.task);
     setEditingTodo(todo);
   };
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (isLoading) {
+    return (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+          fontSize: "2rem",
+          color: "var(--primary-color)",
+        }}
+      >
+        <FaSpinner style={{ animation: "spin 1s linear infinite" }} />
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div style={{ color: "red", textAlign: "center", marginTop: "50px" }}>
+        データの取得に失敗しました。
+      </div>
+    );
+  }
 
   return (
     <div className={styles.appContainer}>
@@ -131,7 +162,7 @@ export function TodoModal() {
             </Button>
           </div>
 
-          {error && <p style={{ color: "red" }}>{error}</p>}
+          {/* {error && <p style={{ color: "red" }}>{error}</p>} */}
 
           <div className={styles.todoList}>
             {todos.length > 0 && (
@@ -148,12 +179,12 @@ export function TodoModal() {
                   <input
                     type="checkbox"
                     checked={todo.isDone}
-                    onChange={() => updateTodo(todo.id, { isDone: !todo.isDone })}
+                    onChange={() => updateTodo({ id: todo.id, isDone: !todo.isDone })}
                   ></input>
                   <Button variant="secondary" onClick={() => openEditModal(todo)}>
                     編集
                   </Button>
-                  <Button variant="danger" onClick={() => deleteTodo(todo.id)}>
+                  <Button variant="danger" onClick={() => handleDelete(todo.id)}>
                     <FaTrash />
                   </Button>
                 </div>

@@ -25,7 +25,7 @@ export function Signup() {
 
       // localStorage.setItem("token", response.data.token);
       // Cookies.set("token", response.data.token, { expires: 7 });
-      await login(response.data.token);
+      login(response.data.token);
       alert("登録成功！Todo画面へ移動します。");
 
       navigate("/todos");

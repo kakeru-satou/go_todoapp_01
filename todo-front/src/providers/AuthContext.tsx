@@ -1,4 +1,5 @@
-import { createContext, useState, useEffect, useCallback } from "react";
+import { createContext, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 import Cookies from "js-cookie";
 import { jwtDecode } from "jwt-decode";
@@ -7,52 +8,54 @@ import axios from "axios";
 export type AuthContextType = {
   isAuthenticated: boolean;
   userName: string;
-  login: (token: string) => Promise<void>;
+  login: (token: string) => void;
   logout: () => void;
 };
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const AuthContext = createContext<AuthContextType | null>(null);
 
+const fetchUserProfile = async (token: string): Promise<string> => {
+  const res = await axios.get("http://localhost:8080/api/users/me", {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.data.name;
+};
+
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(!!Cookies.get("token"));
-  const [userName, setUserName] = useState<string>("ゲスト");
+  const [token, setToken] = useState<string | undefined>(Cookies.get("token"));
+  const queryClient = useQueryClient();
+  // const [isAuthenticated, setIsAuthenticated] = useState<boolean>(!!Cookies.get("token"));
+  // const [userName, setUserName] = useState<string>("ゲスト");
 
-  const fetchUserProfile = useCallback(async (token: string) => {
-    try {
-      const res = await axios.get("http://localhost:8080/api/users/me", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setUserName(res.data.name);
-    } catch (error) {
-      console.error("プロフィール取得失敗", error);
-    }
-  }, []);
+  // useEffect(() => {
+  //   const token = Cookies.get("token");
+  //   if (token) {
+  //     fetchUserProfile(token);
+  //   }
+  // }, [fetchUserProfile]);
 
-  useEffect(() => {
-    const token = Cookies.get("token");
-    if (token) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      fetchUserProfile(token);
-    }
-  }, [fetchUserProfile]);
+  const { data: userName = "ゲスト" } = useQuery({
+    queryKey: ["userProfile", token],
+    queryFn: () => fetchUserProfile(token!),
+    enabled: !!token,
+  });
 
-  const login = async (token: string) => {
-    const decoded = jwtDecode(token);
+  const login = (newToken: string) => {
+    const decoded = jwtDecode(newToken);
     const expiresAt = decoded.exp == null ? undefined : new Date(decoded.exp * 1000);
-    Cookies.set("token", token, { expires: expiresAt });
-    setIsAuthenticated(true);
-    await fetchUserProfile(token);
+    Cookies.set("token", newToken, { expires: expiresAt });
+    setToken(newToken);
   };
 
   const logout = () => {
     Cookies.remove("token");
-    setIsAuthenticated(false);
-    setUserName("ゲスト");
+    setToken(undefined);
+    queryClient.clear();
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, userName, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated: !!token, userName, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

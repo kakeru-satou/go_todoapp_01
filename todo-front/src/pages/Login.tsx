@@ -23,7 +23,7 @@ export function Login() {
 
       // localStorage.setItem("token", response.data.token);
       // Cookies.set("token", response.data.token, { expires: 7 });
-      await login(response.data.token);
+      login(response.data.token);
       alert("ログイン成功！Todo画面へ移動します。");
 
       navigate("/todos");
