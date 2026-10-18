@@ -1,0 +1,233 @@
+/* src/pages/Todo.module.css */
+
+/* レイアウト */
+.appContainer {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* サイドバー */
+.sidebar {
+  width: 260px;
+  background-color: var(--sidebar-bg);
+  border-right: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  padding: 20px 0;
+  z-index: 10;
+}
+.sidebarHeader {
+  padding: 0 20px 30px;
+  color: var(--primary-color);
+}
+.sidebarHeader h2 {
+  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.sidebarNav ul {
+  list-style: none;
+}
+.sidebarNav li {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 15px 20px;
+  color: var(--text-muted);
+  font-weight: 500;
+  transition: background 0.2s;
+  cursor: pointer;
+}
+.sidebarNav li.active,
+.sidebarNav li:hover {
+  background-color: var(--primary-color);
+  color: white;
+  border-radius: 0 25px 25px 0;
+  margin-right: 20px;
+}
+.sidebarFooter {
+  margin-top: auto;
+  padding: 20px;
+}
+
+/* メインコンテンツ */
+.mainContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 20px 40px;
+  overflow-y: auto;
+}
+.topHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 40px;
+}
+.userProfile {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  font-size: 1.2rem;
+  color: var(--text-muted);
+}
+.mobileLogoutBtn {
+  display: none;
+}
+
+/* Todoセクション */
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.todoList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.todoHeader,
+.todoItem {
+  display: grid;
+  grid-template-columns: 1fr 3fr;
+  align-items: center;
+  padding: 10px 20px;
+}
+.todoHeader {
+  font-weight: bold;
+  color: var(--text-main);
+}
+.todoItem {
+  background-color: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: var(--card-shadow);
+}
+.todoTitle {
+  font-weight: bold;
+}
+.todoDesc {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+.todoActions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+/* モーダル */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.4);
+  z-index: 100;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.modalContent {
+  background-color: white;
+  width: 90%;
+  max-width: 450px;
+  border-radius: 16px;
+  padding: 30px;
+  box-shadow: var(--modal-shadow);
+  animation: slideDown 0.3s ease;
+}
+@keyframes slideDown {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+.btnClose {
+  background: #f0f0f0;
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  margin-bottom: 20px;
+  transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.btnClose:hover {
+  background: #e0e0e0;
+}
+.modalTitle {
+  text-align: center;
+  margin-bottom: 30px;
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+.formGroup {
+  margin-bottom: 20px;
+}
+.formGroup label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+.formGroup input,
+.formGroup textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-family: inherit;
+}
+.formGroup input:focus,
+.formGroup textarea:focus {
+  outline: none;
+  border-color: var(--primary-color);
+}
+.modalActions {
+  display: flex;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+/* レスポンシブ (スマホ版) */
+@media (max-width: 768px) {
+  .appContainer {
+    flex-direction: column;
+  }
+  .sidebar {
+    display: none;
+  }
+  .mobileLogoutBtn {
+    display: inline-block;
+    margin-left: 10px;
+  }
+  .mainContent {
+    padding: 15px;
+  }
+  .topHeader h1 {
+    font-size: 1.5rem;
+  }
+  .todoHeader {
+    display: none;
+  }
+  .todoItem {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .todoActions {
+    justify-content: flex-start;
+    margin-top: 10px;
+  }
+}
